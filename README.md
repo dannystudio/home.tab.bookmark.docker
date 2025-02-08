@@ -5,7 +5,12 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 ![screenshot](https://github.com/user-attachments/assets/d0d78c2d-e515-400e-a815-a646bf230b3e)
 
 ## Requirements
+### Environment
 * Node.js 18
+### Browser
+* Microsoft Edge
+* Chrome
+* Firefox
 
 ## Features
 * Add groups.
