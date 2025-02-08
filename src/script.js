@@ -109,6 +109,7 @@ const getDataFromServer = (isInit) => {
             homeTabData = data.home_tab_data;
             if (isInit) {
                 doneInit();
+                setDataToServer(true);
             }
             else {
                 renderGroups();
@@ -125,23 +126,24 @@ const getDataFromServer = (isInit) => {
     });    
 };
 
-const setDataToServer = () => {
+const setDataToServer = (silent = false) => {
     if (verifyData(homeTabData)) {
         homeTabData.timestamp = Date.now();
+        homeTabData.version = version;
         fetch('/process/?action=backup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({home_tab_data: homeTabData})
         })
         .then(resp => {
-            resp.ok && showMessagePopup('Data backup successfully.', 'info');
+            resp.ok && !silent && showMessagePopup('Data backup successfully.', 'info');
         })
         .catch(error => {
-            showMessagePopup('Error while backup data, please try again later.');
+            !silent && showMessagePopup('Error while backup data, please try again later.');
         }); 
     }
     else {
-        showMessagePopup('Data corrupted, try restore data.');
+        !silent && showMessagePopup('Data corrupted, try restore data.');
     }
 };
 
@@ -162,6 +164,7 @@ const setDataToLocal = (skipVerify = false) => {
     const verifyResult = skipVerify ? true : verifyData(homeTabData);
     if (verifyResult) {
         homeTabData.timestamp = Date.now();
+        homeTabData.version = version;
         localStorage.setItem('home-tab-data', JSON.stringify(homeTabData));
         return true;
     }
@@ -929,6 +932,7 @@ const doneInit = () => {
     document.addEventListener('keyup', handleKeyReleased);
     document.addEventListener("visibilitychange", () => {forceOpenInNewTab = false});
     window.addEventListener('resize', setGruopVisibility);
+    html('.footer', `${appName} v${version}`);
     setGruopVisibility();
 };
 

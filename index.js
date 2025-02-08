@@ -1,3 +1,5 @@
+const appName = 'Home Tab Bookmark';
+const version = '1.0.0';
 const express = require('express');
 const axios = require('axios');
 const sharp = require('sharp');
@@ -108,10 +110,11 @@ app.get('/script.js', (request, response) => {
             console.error(error.message);
             return response.status(500).send('Error reading file.');
         }
+        let appVariables = `const appName='${appName}';const version='${version}';`;
         let envVariables = '';
         ((screenshotAPI != 'false' && screenshotAPI != 'none') || typeof puppeteerExtra === 'object') && (envVariables += 'const hasScreenshotAPI=true;');
         openInNewTab != 'false' && (envVariables += 'const openInNewTab=true;');
-        const appendedCode = `${envVariables}${originCode}`;
+        const appendedCode = `${appVariables}${envVariables}${originCode}`;
         response.set('Content-Type', 'text/javascript').send(appendedCode);
     });
 });
