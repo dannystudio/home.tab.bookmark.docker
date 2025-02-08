@@ -34,14 +34,15 @@ const getFileNameAndPath = address => {
     return [originName, originPath, destName, destPath];
 };
 
-const useDefaultThumbnail = (destPath, originName) => {
-    fs.copyFile('./default.thumbnail.png', destPath, error => {
-        if (error) {
-            console.log(`error during use default image, ${error.message}`);
-            return false;
-        }
-    });
-    return true;
+const useDefaultThumbnail = (destPath, destName, originName) => {
+    try {
+        fs.copyFileSync('./default.thumbnail.png', destPath);
+        return {status: 200, message: 'Error while creating thumbnail, use default thumbnail instead.', filename: destName};
+    }
+    catch (error) {
+        console.log(`error during use default image, ${error.message}`);
+        return {status: 304, message: 'Error while creating thumbnail, please try again later.', filename: originName};
+    }
 };
 
 const downloadImage = async (address, type) => {
@@ -86,22 +87,17 @@ const downloadImage = async (address, type) => {
             })
             .catch(error => {
                 console.log(`error during composite images, ${error.message}`);
-                return useDefaultThumbnail(destPath, originName) ?
-                {status: 200, message: 'Error while creating thumbnail, use default thumbnail instead.', filename: destName} :
-                {status: 500, message: 'Error while creating thumbnail, please try again later.', filename: originName};
+                return useDefaultThumbnail(destPath, destName, originName);
             });
         })
         .catch(error => {
             console.log(`error during getting image, ${error.message}`);
-            return useDefaultThumbnail(destPath, originName) ?
-            {status: 200, message: 'Error while creating thumbnail, use default thumbnail instead.', filename: destName} :
-            {status: 500, message: 'Error while creating thumbnail, please try again later.', filename: originName};
+            return useDefaultThumbnail(destPath, destName, originName);
         });
     }
     catch (error) {
-        return useDefaultThumbnail(destPath, originName) ?
-        {status: 200, message: 'Error while creating thumbnail, use default thumbnail instead.', filename: destName} :
-        {status: 500, message: 'Error while creating thumbnail, please try again later.', filename: originName};
+        console.log(`error during getting image, ${error.message}`);
+        return useDefaultThumbnail(destPath, destName, originName);
     }
 };
 
@@ -113,7 +109,7 @@ app.get('/script.js', (request, response) => {
             return response.status(500).send('Error reading file.');
         }
         let envVariables = '';
-        (screenshotAPI != 'false' && screenshotAPI != 'none') && (envVariables += 'const hasScreenshotAPI=true;');
+        ((screenshotAPI != 'false' && screenshotAPI != 'none') || typeof puppeteerExtra === 'object') && (envVariables += 'const hasScreenshotAPI=true;');
         openInNewTab != 'false' && (envVariables += 'const openInNewTab=true;');
         const appendedCode = `${envVariables}${originCode}`;
         response.set('Content-Type', 'text/javascript').send(appendedCode);
@@ -128,7 +124,9 @@ app.get('/process', async (request, response) => {
         const thumbnailType = queryParams.type ? queryParams.type : 'icon';
         if (queryParams.url) {
             try {
-                const result = await downloadImage(queryParams.url, thumbnailType);
+                const result = thumbnailType == 'screen' && typeof puppeteerExtra === 'object' ?
+                await takeScreenshot(queryParams.url) :
+                await downloadImage(queryParams.url, thumbnailType);
                 if (result.status == 200 && queryParams.delete) {
                     const deleteThumbnailPath = `${thumbnailDir}/${queryParams.delete}`;
                     fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
