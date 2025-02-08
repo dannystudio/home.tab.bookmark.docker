@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Home</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link type="text/css" rel="stylesheet" href='/style.css' />
+<script type="text/javascript" src="/script.js"></script>
+</head>
+<body oncontextmenu="return false;">
+<div class="group-container"></div>
+<div class="bookmark-container-outer">
+    <div class="bookmark-container"></div>
+</div>
+<div class="popup-mask">
+    <div class="form-container group-form">
+        <div class="group-form-header"></div>
+        <button class="form-close-button close-group-form" onClick="return closeGroupForm();">&#10006;</button>
+        <form name="groupForm" onSubmit="return submitGroupForm();">
+            <input type="hidden" class="group-form-index" value="0">
+            <div class="field-label">Group Name</div>
+            <input type="text" value="" maxlength="30" class="text-field">
+            <div>
+                <button class="button group-form-submit-button"></button>
+            </div>
+        </form>
+        <div class="edit-group-icon-container">
+            <button class="function-icon delete-group-icon" onClick="deleteItem()"><img src="image/delete.png"><span>Delete Group</span></button>
+        </div>
+    </div>
+    <div class="form-container bookmark-form">
+        <div class="bookmark-form-header"></div>
+        <button class="form-close-button close-bookmark-form" onClick="return closeBookmarkForm();">&#10006;</button>
+        <form name="bookmarkForm" onSubmit="return submitBookmarkForm();">
+            <input type="hidden" class="bookmark-form-index" value="">
+            <div class="field-label">URL</div>
+            <input type="text" value="" maxlength="200" class="text-field">            
+            <div class="field-label">Label</div>
+            <input type="text" value="" maxlength="30" class="text-field">
+            <div>
+                <button class="button bookmark-form-submit-button"></button>
+            </div>
+        </form>
+        <div class="edit-bookmark-icon-container">
+            <button class="function-icon delete-bookmark-icon" onClick="deleteItem()"><img src="image/delete.png"><span>Delete Bookmark</span></button>
+            <button class="function-icon reload-thumbnail-icon" click-registered="false"><img src="image/reload.png"><span>Reload Thumbnail</span></button>
+        </div>
+            <div class="reload-thumbnail-options">
+                <div class="field-label center" onClick="reloadThumbnail('icon')">Use Site Icon</div>
+                <div class="field-label center" onClick="reloadThumbnail('screen')">Use Site Screenshot</div>
+            </div>       
+    </div>
+    <div class="drop-area-container" listen-to-event="false">
+        <form name="uploadForm" class="upload-form">
+            <input type="file" id="uploadField" accept="application/json" onchange="importData(this.files)" class="upload-file-input">
+        </form>
+        <div class="drop-area-content">
+            <div class="drop-area-close-button-container">
+                <div class="form-close-button drop-area-close-button" onClick="closeDropContainer()" >&#10006;</div>
+            </div>
+            <div>Please drop a file here to import</div>
+            <div>OR</div>
+            <div><label class="button select-file-button" for="uploadField">Select a File</label></div>
+        </div>
+    </div>    
+</div>
+<div class="message-mask">
+    <div class="message-container" onClick="closeMessagePopup();">
+        <div class="message-body"></div>
+        <div class="message-progress-bar">
+            <div class="message-progress-bar-fill"></div>
+        </div>
+        <div class="message-confirm-button-container">
+            <div class="message-confirm-button message-confirm">&#10004;</div>
+            <div class="message-confirm-button message-cancel" onClick="closeMessagePopup()">&#10006;</div>
+        </div>    
+    </div>   
+</div>
+<div class="app-menu-icon" onClick="toggleAppMenu()">&#8942;</div>
+<div class="app-menu-container">
+    <div class="app-menu-content" displayed="false"></div>
+</div>
+<div class="footer">Home Tab Bookmark v1.0.0</div>
+</body>
+</html>

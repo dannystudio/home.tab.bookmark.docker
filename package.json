@@ -1,0 +1,28 @@
+{
+  "name": "home.tab.bookmark.docker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "rm -rf ./public && mkdirp ./public && rm -rf ./private && mkdirp ./private",
+    "devtest": "npm run prepare && cp -R ./src/* ./public/ && rm ./public/script.js && cp ./src/script.js ./private/ && node index.js",
+    "build": "npm run prepare && cp -R ./src/* ./public && rm ./public/script.js && uglifycss ./src/style.css --output ./public/style.css && uglifyjs ./src/script.js --compress --mangle --warn --output ./private/script.js",
+    "buildtest": "npm run build && node index.js",
+    "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run build && docker build -t dannystudio/home-tab-bookmark .",
+    "dockertest": "docker run -p 8080:3000 dannystudio/home-tab-bookmark",
+    "dockersave": "docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "mkdirp": "^3.0.1",
+    "uglify-js": "^3.19.3",
+    "uglifycss": "^0.0.29"
+  }
+}

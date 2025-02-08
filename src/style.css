@@ -1,0 +1,563 @@
+html, body {
+    height: 100%;
+    margin: 0px;
+    background: rgb(243, 243, 243);
+}
+
+body, div, a, form, input {
+    font-family: Verdana, Helvetica, sans-serif;
+    font-size: 14px;
+    color: rgb(17, 17, 17);
+}
+
+body, div, a {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+div, button, input {
+    outline: none !important;
+}
+
+.drag-start-state {
+    filter: grayscale(1);
+    opacity: 0.1;
+}
+
+.group-container {
+    position: relative;
+    display: flex;
+    width: 100vw;
+    border-bottom: 1px solid rgb(204, 204, 204);
+    background: rgb(255, 255, 255);
+    gap: 0px;
+    z-index: 10;
+}
+
+.group-label {
+    height: 40px;
+    min-width: 80px;
+    margin-right: 20px;
+    padding: 0px 20px;
+    font-size: 16px;
+    color: rgb(137, 137, 137);
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.group-label:hover {
+    color: rgb(0, 0, 0);
+}
+
+.group-selected {
+    background: rgb(243, 243, 243);
+}
+
+.group-visibility-hidden {
+    visibility: hidden;
+}
+
+.add-new-group {
+    min-width: 40px;
+    background: transparent;
+    font-size: 24px;
+    color: rgb(137, 137, 137);
+    cursor: pointer;
+}
+
+.add-new-group:hover {
+    background: rgb(243, 243, 243);
+}
+
+.bookmark-container-outer {
+    display: flex;
+    width: 100vw;
+    justify-content: center;
+}
+
+.bookmark-container {
+    display: flex;
+    max-width: 1908px;
+    flex-wrap: wrap;
+    justify-content: start;
+    z-index: 10;
+}
+
+.popup-mask, .message-mask {
+    position: fixed;
+    display: none;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);   
+    justify-content: center;
+}
+
+.popup-mask {
+    z-index: 20;
+    align-items: center; 
+}
+
+.message-mask {
+    z-index: 30;
+    align-items: start;
+}
+
+.message-container {
+    position: absolute;
+    top: -300px;
+    min-width: 400px;
+    min-height: 40px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px; 
+    overflow: hidden;
+    transition: top 0.1s ease-out;    
+    cursor: pointer;      
+}
+
+.message-container-show {
+    top: 0px;
+}
+
+.message-default-cursor {
+    cursor: default;      
+}
+
+.message-alert-theme, .message-confirm-theme {
+    background: rgb(249, 106, 106);  
+}
+
+.message-info-theme {
+    background: rgb(140, 197, 140);
+}
+
+.message-body {
+    width: 100%;
+    padding: 20px 10px;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    white-space: nowrap;
+}
+
+.message-symbol-enlarged {
+    display: inline-block;
+    line-height: 24px;
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+}
+
+.message-progress-bar {
+    display: none;
+    width: 100%; 
+    height: 10px;
+    padding: 0px;
+}
+
+.message-alert-progress-bar, .message-cancel:hover {
+    background: rgb(139, 30, 30);    
+}
+
+.message-info-progress-bar, .message-confirm:hover {
+    background: rgb(32, 156, 32);
+}
+
+.message-progress-bar-fill {
+    width: 0px;
+    height: 10px;
+    transition: width 5s ease-out;
+}
+
+.message-progress-bar-fill-run {
+    width: 100%;
+}
+
+.message-confirm-button-container {
+    display: none;
+    margin-bottom: 10px;
+    justify-content: end;
+}
+
+.message-confirm-button {
+    display: flex;  
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    border: 3px solid rgb(255, 255, 255);
+    border-radius: 15px;
+    font-size: 18px;
+    color:rgb(255, 255, 255);
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;     
+}
+
+.message-confirm {
+    background: rgb(140, 197, 140);
+    transform: rotate(5deg);
+}
+
+.form-container {
+    display: none;
+    padding: 10px;
+    background: rgb(233, 233, 233);
+    border: 6px solid rgb(255, 255, 255);
+    border-radius: 5px;
+    transition: height 0.2s, opacity 0.1s ease-in;
+    opacity: 0;
+}
+
+.form-container-show {
+    opacity: 1;   
+}
+
+.form-close-button {
+    position: relative;
+    top: -5px;
+    left: 5px;
+    padding: 2px 6px;
+    border: 0px;
+    border-radius: 3px;    
+    background: transparent;
+    font-size: 18px;
+    color: rgb(204, 204, 204);
+    float: right;
+    cursor: pointer;
+}
+
+.form-close-button:hover:enabled {
+    background: rgb(204, 204, 204);
+    color: rgb(0, 0, 0);
+}
+
+.form-disabled {
+    filter: grayscale(1);
+    cursor: default;
+}
+
+.form-disabled button {
+    cursor: default;
+}
+
+.group-form {
+    height: 145px;   
+}
+
+.bookmark-form {
+    height: 215px;
+    overflow: hidden;
+}
+
+.bookmark-form-expand {
+    height: 245px;
+}
+
+.group-form-header, .bookmark-form-header {
+    display: inline-block;
+    margin: 0px 0px 10px 2px;    
+    font-size: 20px;
+    color: rgb(3, 110, 205);
+}
+
+.field-label {
+    margin: 0px 0px 5px 2px; 
+    font-size: 16px;   
+}
+
+.text-field {
+    width: 390px;
+    height: 24px;
+    padding: 5px 5px 5px 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgb(204, 204, 204);
+    border-radius: 3px;
+}
+
+.button {
+    position: relative;
+    top: 8px;
+    width: 80px;
+    height: 30px;
+    background: rgb(3, 110, 205);
+    border: 0px;
+    border-radius: 3px; 
+    color: rgb(255, 255, 255);
+    float: right;
+    cursor: pointer;
+}
+
+.bookmark-item {
+    width: 256px;
+    height: 192px;
+    min-width: 256px;
+    min-height: 192px;
+    margin: 30px;
+    border: 1px solid rgb(204, 204, 204);
+    border-radius: 3px;    
+    background: rgb(255, 255, 255);
+    cursor: pointer;
+}
+
+.bookmark-thumbnail {
+    height: 100%;
+    clip-path: rect(0px 256px 160px 0px);
+}
+
+.bookmark-label {
+    position: relative;
+    top: -24px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.add-new-bookmark {
+    border: 1px solid transparent;     
+    background: transparent;   
+    font-size: 30px;
+    color: rgb(204, 204, 204);
+}
+
+.add-new-bookmark:hover {
+    color: rgb(0, 0, 0);
+    background: rgb(233, 233, 233);
+}
+
+.edit-group-icon-container, .edit-bookmark-icon-container {
+    position: relative;
+    display: none;
+    gap: 5px;
+    top: 10px;
+    left: -3px;
+    width: 300px;
+}
+
+.function-icon {
+    display: flex;
+    width: 30px;
+    height: 30px;
+    border: 0px;
+    background: transparent;    
+    white-space: nowrap;
+    align-items: center;
+    filter: grayscale(0);
+    overflow: hidden;
+    transition: width 0.1s;
+    cursor: pointer;    
+}
+
+.function-icon span {
+    position: relative;
+    top: 3px;
+    left: 5px;
+    font-size: 16px;
+}
+
+.delete-group-icon:hover:enabled, .delete-bookmark-icon:hover:enabled {
+    width: 160px;
+}
+
+.reload-thumbnail-icon:hover:enabled {
+    width: 200px;
+}
+
+.delete-group-icon, .delete-bookmark-icon {
+    color: rgb(255, 118, 118);
+}
+
+.reload-thumbnail-icon {
+    color: rgb(18, 152, 231);
+}
+
+.reload-thumbnail-options {
+    position: relative;
+    display: none;
+    top: 20px;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.reload-thumbnail-options div {
+    color: rgb(18, 152, 231);
+    cursor: pointer;
+}
+
+.drop-area-container {
+    display: none;
+    width: 400px;
+    height: 250px;
+    padding: 10px 10px 20px 10px;
+    background: rgb(233, 233, 233);
+    border: 6px solid rgb(255, 255, 255);
+    border-radius: 5px;
+}
+
+.drop-area-content {
+    display: grid;
+    grid-template-rows: 20px 160px 20px 50px;
+}
+
+.drop-area-content div {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.drop-area-close-button-container {
+    display: flex;
+    justify-content: end !important;
+}
+
+.drop-area-close-button {
+    position: relative;
+    top: -1px;
+    width: 16px !important;
+}
+
+.drop-area-close-button:hover {
+    background: rgb(204, 204, 204);
+    color: rgb(0, 0, 0);   
+}
+
+.dragging-in {
+    background: rgb(140, 197, 140);
+}
+
+.upload-file-input {
+    display: none;
+}
+
+.select-file-button {
+    display: flex;
+    width: 90px;
+    padding: 0px 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-menu-container {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    height: 40px;
+    overflow: hidden;
+    z-index: 11;
+}
+
+.app-menu-container-show {
+    overflow: visible;
+}
+
+.app-menu-icon {
+    position: absolute;
+    display: flex;
+    top: 0px;
+    right: 0px;
+    width: 40px;
+    height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    background: rgb(255, 255, 255);
+    font-size: 30px;
+    color: rgb(137, 137, 137);
+    transform: rotate(90deg);     
+    justify-content: center;
+    align-items: center;
+    z-index: 12;
+    cursor: pointer;
+}
+
+.app-menu-icon:hover {
+    background: rgb(243, 243, 243);
+    color: rgb(0, 0, 0);
+}
+
+.app-menu-content {
+    position: relative;
+    display: grid;
+    top: 41px;
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(211, 211, 211);
+    border-bottom-left-radius: 10px;
+    box-shadow: -1px 1px 3px rgba(0, 0, 0, 0.1);
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .1s;
+}
+
+.app-menu-content-expand {
+    grid-template-rows: 1fr;
+}
+
+.app-menu-content div {
+    padding: 5px 10px;
+    color: rgb(137, 137, 137);
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.app-menu-content div:not(:last-child) {
+    border-bottom: 1px solid rgb(211, 211, 211);
+}
+
+.app-menu-content div:hover {
+    color: rgb(0, 0, 0);
+}
+
+.app-menu-divider {
+    height: 1px;
+    padding: 0px !important;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;      
+}
+
+.preloader {
+    position: fixed;    
+    visibility: hidden;
+    top: -100px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    margin: 10px;
+    color: rgb(204, 204, 204);
+    z-index: 0;
+}
+
+@media (width < 1908px) {
+    .bookmark-container {
+        max-width: 1590px;
+    }
+}
+
+@media (width < 1590px) {
+    .bookmark-container {
+        max-width: 1272px;
+    }
+}
+
+@media (width < 1272px) {
+    .bookmark-container {
+        max-width: 954px;
+    }
+}
+
+@media (width < 954px) {
+    .bookmark-container {
+        max-width: 636px;
+    }
+}
+
+@media (width < 636px) {
+    .bookmark-container {
+        max-width: 318px;
+    }
+}
