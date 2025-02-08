@@ -1,7 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const sharp = require('sharp');
-const path = require('path');
 const fs = require('fs');
 const url = require('url');
 
@@ -18,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static('public'));
-app.use("/thumbnail",  express.static(`${__dirname}/data/thumbnail`));
+app.use('/thumbnail',  express.static(thumbnailDir));
 
 const parseUrlParts = address => {
     return url.parse(address, true);
@@ -107,7 +106,7 @@ const downloadImage = async (address, type) => {
 };
 
 app.get('/script.js', (request, response) => {
-    const filePath = path.join(__dirname, 'private', 'script.js');
+    const filePath = './private/script.js';
     fs.readFile(filePath, 'utf8', (error, originCode) => {
         if (error) {
             console.error(error.message);
