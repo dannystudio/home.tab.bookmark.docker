@@ -2,6 +2,7 @@ html, body {
     height: 100%;
     margin: 0px;
     background: rgb(243, 243, 243);
+    overflow-x: hidden;
 }
 
 body, div, a, form, input {
@@ -72,7 +73,6 @@ div, button, input {
 
 .bookmark-container-outer {
     display: flex;
-    width: 100vw;
     justify-content: center;
 }
 

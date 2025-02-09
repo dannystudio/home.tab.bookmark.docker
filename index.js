@@ -13,7 +13,7 @@ const enableBasicAuth = process.env.BASIC_AUTH || 'false';
 const username = process.env.USER_NAME || 'admin';
 const password = process.env.PASSWORD || 'admin';
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const faviconAPI = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=64&url=';
 const dataFile = './data/home-tab-bookmark-data.json';
 const thumbnailDir = './data/thumbnail';
@@ -41,13 +41,6 @@ const authentication = (request, response, next) => {
         }
     }
 };
-
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-app.use(authentication);
-app.use(express.static('public'));
-app.use('/thumbnail',  express.static(thumbnailDir));
 
 const parseUrlParts = address => {
     return url.parse(address, true);
@@ -130,6 +123,13 @@ const downloadImage = async (address, type) => {
         return useDefaultThumbnail(destPath, destName, originName);
     }
 };
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(authentication);
+app.use(express.static('public'));
+app.use('/thumbnail',  express.static(thumbnailDir));
 
 app.get('/script.js', (request, response) => {
     const filePath = './private/script.js';
