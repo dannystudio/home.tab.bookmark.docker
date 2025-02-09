@@ -52,7 +52,7 @@ https://image.thum.io/get/width/256/crop/900/
 Bookmark is opened in the same tab by default. Set this variable to true to enable bookmark opened in new tab.
 
 ### BASIC_AUTH ###
-Set this variable to true to enable basic authentication for your bookmark application.
+Basic authentication is off by default, set this variable to true to enable basic authentication for the bookmark access.
 
 ### USER_NAME ###
 The default username for basic authentication is 'admin', use this variable to set your username for basic authentication.
