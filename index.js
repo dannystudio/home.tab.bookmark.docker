@@ -9,15 +9,43 @@ const url = require('url');
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
 const openInNewTab = process.env.OPEN_IN_NEW_TAB || 'false';
+const enableBasicAuth = process.env.BASIC_AUTH || 'false';
+const username = process.env.USER_NAME || 'admin';
+const password = process.env.PASSWORD || 'admin';
 
 const port = 3000;
 const faviconAPI = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=64&url=';
 const dataFile = './data/home-tab-bookmark-data.json';
 const thumbnailDir = './data/thumbnail';
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+const authentication = (request, response, next) => {
+    if (enableBasicAuth == 'false') {
+        next();
+    }
+    else {
+        const authheader = request.headers.authorization;
+        if (!authheader) {
+            const error = new Error('You are not authenticated!');
+            response.set('WWW-Authenticate', 'Basic').status(401).send(error.message);
+            return next(error);          
+        }
+        const auth = new Buffer.from(authheader.split(' ')[1], 'base64').toString().split(':');
+        const user = auth[0];
+        const pass = auth[1];
+        if (user == username && pass == password) {
+            next();
+        } else {
+            const error = new Error('You are not authenticated!');
+            response.set('WWW-Authenticate', 'Basic').status(401).send(error.message);
+            return next(error);            
+        }
+    }
+};
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(authentication);
 app.use(express.static('public'));
 app.use('/thumbnail',  express.static(thumbnailDir));
 

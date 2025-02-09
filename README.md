@@ -40,12 +40,25 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 ### SCREENSHOT_API ###
 Bookmark thumbnail will use faviocn by default. Specific the screenshot api gives the option to use website screenshot as bookmark thumbnail. The screenshot api should be full api url without bookmark's url and it should return a png image.
 
-Here is an example of screehshot api from [thum.io](https://www.thum.io)
+Here is an example of screenshot api from [elestio/ws-screenshot.slim](https://hub.docker.com/r/elestio/ws-screenshot.slim) docker
+
+http://[IP_ADDRESS]]:[PORT]/api/screenshot?resX=1024&resY=768&waitTime=2000&outFormat=png&url=
+
+Here is another example of screehshot api from [thum.io](https://www.thum.io)
 
 https://image.thum.io/get/width/256/crop/900/
 
 ### OPEN_IN_NEW_TAB ###
 Bookmark is opened in the same tab by default. Set this variable to true to enable bookmark opened in new tab.
+
+### BASIC_AUTH ###
+Set this variable to true to enable basic authentication for your bookmark application.
+
+### USER_NAME ###
+The default username for basic authentication is 'admin', use this variable to set your username for basic authentication.
+
+### PASSWORD ###
+The default password for basic authentication is 'admin', use this variable to set your password for basic authentication.
 
 ## Volume Setting
 ### /data ###
