@@ -26,7 +26,7 @@ div, button, input {
 }
 
 .group-container {
-    position: relative;
+    position: fixed;
     display: flex;
     width: 100vw;
     border-bottom: 1px solid rgb(204, 204, 204);
@@ -77,11 +77,13 @@ div, button, input {
 }
 
 .bookmark-container {
+    position: relative;
     display: flex;
+    top: 41px;
     max-width: 1908px;
     flex-wrap: wrap;
     justify-content: start;
-    z-index: 10;
+    z-index: 9;
 }
 
 .popup-mask, .message-mask {
