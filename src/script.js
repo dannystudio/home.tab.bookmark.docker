@@ -673,7 +673,11 @@ const submitBookmarkForm = () => {
             let reloadThumbnail = true;
             const updateBookmark = (filename) => {
                 const bookmarks = homeTabData.groups[currentGroup].bookmarks;
-                const newIndex = bookmarkIndex == -1 ? bookmarks.length : bookmarkIndex;
+                if (bookmarkIndex == -1) {
+                    newIndex = bookmarks.length;
+                    bookmarks[newIndex] = {};
+                }
+                else newIndex = bookmarkIndex;
                 bookmarks[newIndex].label = bookmarkLabel,
                 bookmarks[newIndex].url = bookmarkUrl
                 if (filename) {
@@ -698,9 +702,6 @@ const submitBookmarkForm = () => {
                         showMessagePopup(data.message);
                     }
                     updateBookmark(data.filename);
-                })
-                .catch(error => {
-                    showMessagePopup('Error, please try again later.');
                 });
             }
             else updateBookmark();
