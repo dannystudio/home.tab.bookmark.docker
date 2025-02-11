@@ -670,7 +670,25 @@ const submitBookmarkForm = () => {
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
             const type = bookmarkIndex == -1 ? 'Add' : 'Edit';
-            if (type == 'Add') {
+            let reloadThumbnail = true;
+            const updateBookmark = (filename) => {
+                const bookmarks = homeTabData.groups[currentGroup].bookmarks;
+                const newIndex = bookmarkIndex == -1 ? bookmarks.length : bookmarkIndex;
+                bookmarks[newIndex].label = bookmarkLabel,
+                bookmarks[newIndex].url = bookmarkUrl
+                if (filename) {
+                    bookmarks[newIndex].thumbnail = filename;
+                }
+                if (setDataToLocal()) {
+                    goToGroup(currentGroup); 
+                    closeBookmarkForm();
+                }
+            };
+            if (type == 'Edit') {
+                const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
+                reloadThumbnail = targetDataBlock.url != bookmarkUrl;
+            }
+            if (reloadThumbnail) {
                 html('.bookmark-form-submit-button', '<img src="image/loading.png">');
                 disableForm(bookmarkForm, '.close-bookmark-form');
                 fetch(`/process/?action=reload&url=${bookmarkUrl}`)
@@ -679,29 +697,13 @@ const submitBookmarkForm = () => {
                     if (data.message) {
                         showMessagePopup(data.message);
                     }
-                    homeTabData.groups[currentGroup].bookmarks.push({
-                        label: bookmarkLabel,
-                        url: bookmarkUrl,
-                        thumbnail: data.filename
-                    });
-                    if (setDataToLocal()) {
-                        goToGroup(currentGroup); 
-                        closeBookmarkForm();
-                    }
+                    updateBookmark(data.filename);
                 })
                 .catch(error => {
                     showMessagePopup('Error, please try again later.');
                 });
             }
-            else {
-                const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
-                targetDataBlock.label = bookmarkLabel;
-                targetDataBlock.url = bookmarkUrl;
-                if (setDataToLocal()) {
-                    goToGroup(currentGroup);
-                    closeBookmarkForm();
-                }
-            }
+            else updateBookmark();
         }
         else {
             showMessagePopup(`&#34;${bookmarkLabel}&#34; already exist, please use another label.`);
