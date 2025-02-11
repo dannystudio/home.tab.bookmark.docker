@@ -88,7 +88,7 @@ app.get('/process', async (request, response) => {
         const thumbnailType = queryParams.type ? queryParams.type : 'icon';
         if (queryParams.url) {
             try {
-                const pingresult = await ping.promise.probe(queryParams.url.replace(/(https|http):\/\//i, ''));
+                const pingresult = await ping.promise.probe(queryParams.url.replace(/(https|http):\/\//i, '').split('/')[0]);
                 if (pingresult.alive) {
                     const fileProps = getThumbnailProperties(queryParams.url, thumbnailType, screenshotAPI);
                     const result = await tf.createThumbnail(fileProps);
