@@ -6,7 +6,7 @@
   "scripts": {
     "prepare": "rm -rf ./public && mkdirp ./public && rm -rf ./private && mkdirp ./private",
     "devbuild": "npm run --silent prepare && cp -R ./src/* ./public/ && rm ./public/script.js && cp ./src/script.js ./private/",
-    "devtest": "npm run --silent devbuild && node index.js",
+    "devtest": "npm run --silent devbuild && nodemon index.js",
     "build": "npm run --silent prepare && cp -R ./src/* ./public && rm ./public/script.js && uglifycss ./src/style.css --output ./public/style.css && uglifyjs ./src/script.js --compress --mangle --warn --output ./private/script.js",
     "buildtest": "npm run --silent build && node index.js",
     "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run --silent build && docker build -t dannystudio/home-tab-bookmark .",
@@ -17,12 +17,13 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.9",
-    "body-parser": "^1.20.3",
     "express": "^4.21.2",
+    "ping": "^0.4.4",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
     "mkdirp": "^3.0.1",
+    "nodemon": "^3.1.9",
     "uglify-js": "^3.19.3",
     "uglifycss": "^0.0.29"
   }
