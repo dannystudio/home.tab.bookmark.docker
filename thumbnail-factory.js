@@ -58,7 +58,7 @@ const imageComposer = async (type, width, height, fileProps, useFallback = false
 
 const useFallbackThumbnail = async (fileProps) => {
     const originName = fileProps.originName;
-    const label =  originName.substring(0, 4) == 'www.' ? originName.substring(4, 5) : originName.substring(0 ,1);
+    const label =  originName.match(/^(www)\./i) != null ? originName.substring(4, 5) : originName.substring(0 ,1);
     const svg = `
         <svg width="${iconWidth}" height="${iconHeight}">
             <rect x="0" y="0" width="100%" height="100%" fill="#${randomColor()}" rx="5" ry="5" />
