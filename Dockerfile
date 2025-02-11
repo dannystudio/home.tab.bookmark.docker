@@ -1,3 +1,5 @@
+# syntax=docker.io/docker/dockerfile:1.7-labs
+
 # Use an appropriate Node.js base image
 FROM node:18-alpine
 
@@ -10,12 +12,13 @@ WORKDIR /
 
 # Copy package.json and package-lock.json (if it exists)
 COPY package*.json ./
+COPY verdana.ttf /usr/share/fonts/
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application code
-COPY . .
+COPY --exclude=*.ttf . .
 
 # Expose the port your app listens on
 EXPOSE 3000
