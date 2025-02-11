@@ -695,7 +695,8 @@ const submitBookmarkForm = () => {
             if (reloadThumbnail) {
                 html('.bookmark-form-submit-button', '<img src="image/loading.png">');
                 disableForm(bookmarkForm, '.close-bookmark-form');
-                fetch(`/process/?action=reload&url=${bookmarkUrl}`)
+                const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
+                fetch(`/process/?action=reload&type=${type}&url=${bookmarkUrl}&delete=${deleteThumbnail}`)
                 .then(resp => resp.json())
                 .then(data => {
                     if (data.message) {

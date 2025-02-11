@@ -8,11 +8,19 @@ const iconWidth = 64;
 const iconHeight = 64;
 let thumbnailBuffer;
 const faviconAPI = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=64&url=';
+
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
+const randomColor = () => {
+    let color = '';
+    while (color.length < 6) {
+        color += parseInt(Math.random()*255).toString(16).padStart(2, 0);
+    }
+    return color;
+};
 const imageComposer = async (type, width, height, fileProps, useFallback = false) => {
     const compositeTop = type == 'icon' ? ((thumbnailHeight - width) / 2 - 10) : 0;
-    const compositeLeft = type == 'icon' ? ((thumbnailWidth - height) / 2) : 0;  
+    const compositeLeft = type == 'icon' ? ((thumbnailWidth - height) / 2) : 0; 
     const baseImage = await sharp({
         create: {
             width: thumbnailWidth,
@@ -53,7 +61,7 @@ const useFallbackThumbnail = async (fileProps) => {
     const label =  originName.substring(0, 4) == 'www.' ? originName.substring(4, 5) : originName.substring(0 ,1);
     const svg = `
         <svg width="${iconWidth}" height="${iconHeight}">
-            <rect x="0" y="0" width="100%" height="100%" fill="#0e8dbc" rx="5" ry="5" />
+            <rect x="0" y="0" width="100%" height="100%" fill="#${randomColor()}" rx="5" ry="5" />
             <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="3em" font-family="Verdana" fill="#fff">${label.toUpperCase()}</text>
         </svg>
         `;

@@ -73,7 +73,7 @@ app.get('/script.js', (request, response) => {
         }
         let appVariables = `const appName='${appName}',version='${version}'`;
         let envVariables = '';
-        ((screenshotAPI != 'false' && screenshotAPI != 'none') || typeof puppeteerExtra === 'object') && (envVariables += ',hasScreenshotAPI=true');
+        ((screenshotAPI != 'false' && screenshotAPI != 'none') || typeof tf.puppeteerExtra === 'object') && (envVariables += ',hasScreenshotAPI=true');
         openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
         const appendedCode = `${appVariables}${envVariables};${originCode}`;
         response.set('Content-Type', 'text/javascript').send(appendedCode);
