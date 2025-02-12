@@ -57,7 +57,7 @@ const imageComposer = async (fileProps, width, height, useFallback = false) => {
     .then(() => {
         fs.existsSync(fileProps.originPath) && fs.unlinkSync(fileProps.originPath);
         return useFallback ?
-            {status: 200, message: 'Error when creating thumbnail, use generic thumbnail instead.', filename: fileProps.destName} :
+            {status: 200, message: 'Error when creating thumbnail, please check input url.', filename: fileProps.destName} :
             {status: 200, filename: fileProps.destName};
     })
     .catch(error => {
@@ -107,12 +107,13 @@ const getImageFromAPI = async (fileProps) => {
     })
     .then(async response => {
         await response.data.pipe(fs.createWriteStream(originPath));
-        const originBufferWidth = thumbnailType == 'icon' ? iconWidth : thumbnailWidth;
-        const originBufferHeight = thumbnailType == 'icon' ? iconHeight : thumbnailHeight;
         while(!fs.existsSync(originPath)) {
             await sleep(250);
         }
         if (thumbnailType == 'icon') {
+            const metadata = await sharp(originPath).metadata();
+            const originBufferWidth = (!metadata || !metadata.width) ? iconWidth : metadata.width;
+            const originBufferHeight = (!metadata || !metadata.height) ? iconWidth : metadata.height;
             thumbnailBuffer = await sharp(originPath)
             .resize(originBufferWidth, originBufferHeight)
             .png()
@@ -132,9 +133,7 @@ const getImageFromAPI = async (fileProps) => {
 
 const createThumbnailFromUpload = async (fileProps, uploadBuffer) => {
     const base64Data = uploadBuffer.replace(/^data:image\/\w+;base64,/, '');
-    const tempBuffer = await sharp(Buffer.from(base64Data, 'base64'))
-    .png()
-    .toBuffer();
+    const tempBuffer = await sharp(Buffer.from(base64Data, 'base64')).png().toBuffer();
     return await sharp(Buffer.from(tempBuffer))
     .metadata()
     .then(async metadata => {

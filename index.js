@@ -2,7 +2,6 @@ const appName = 'Home Tab Bookmark';
 const version = '1.0.0';
 const express = require('express');
 const formidable = require('express-formidable');
-const ping = require('ping');
 const url = require('url');
 const fs = require('fs');
 const tf = require('./thumbnail-factory');
@@ -57,6 +56,11 @@ const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, book
     return {thumbnailType, thumbnailUrl, originName, originPath, destName, destPath, screenshotAPI};
 };
 
+const deleteOldThumbnail = (filename) => {
+    const deleteThumbnailPath = `${thumbnailDir}/${filename}`;
+    fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
+};
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -90,42 +94,41 @@ app.post('/process', async (request, response) => {
         const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
         const fileProps = getThumbnailProperties(thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl);
         if (thumbnailType == 'upload' && req.upload_buffer) {
-            const result = await tf.createThumbnailFromUpload(fileProps, req.upload_buffer);
-            if (result.status == 200 && req.thumbnail_delete) {
-                const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
-                fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
-            }
-            response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+            await tf.createThumbnailFromUpload(fileProps, req.upload_buffer)
+            .then(result => {
+                if (result.status == 200 && req.thumbnail_delete) {
+                    deleteOldThumbnail(req.thumbnail_delete);
+                }
+                response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+            })
+            .catch(error => {
+                console.log(error.message);
+                response.status(500).send(error.message);
+            });
         }
         else {
             if (thumbnailUrl) {
-                try {
-                    const pingResult = await ping.promise.probe(thumbnailUrl.replace(/(https|http):\/\//i, '').split('/')[0]);
-                    if (pingResult.alive) {
-                        const result = await tf.createThumbnail(fileProps);
-                        if (result.status == 200 && req.thumbnail_delete) {
-                            const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
-                            fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
-                        }
-                        response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+                await tf.createThumbnail(fileProps)
+                .then(result => {
+                    if (result.status == 200 && req.thumbnail_delete) {
+                        deleteOldThumbnail(req.thumbnail_delete);
                     }
-                    else {
-                        response.set('Content-Type', 'text/plain').status(404).send(JSON.stringify({status: 404, message: 'Unable reslove the url, please check the url and then try again.'}));
-                    }
-                }
-                catch (error) {
-                    // nothing for now
-                }
+                    response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+                })
+                .catch(error => {
+                    console.log(error.message);
+                    response.status(500).send(error.message);
+                });
             }
         }
     }
     else if (action == 'delete') {
-        const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
         try {
-            fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
+            deleteOldThumbnail(req.thumbnail_delete);
             response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
         }
         catch (error) {
+            console.log(error.message);
             response.status(500).send(error.message);
         }
     }
@@ -140,7 +143,7 @@ app.post('/process', async (request, response) => {
         fs.writeFile(dataFile, req.home_tab_data, error => {
             error ?
             response.status(500).send('Error, Data Writing Error.') :
-            response.set('content-type', 'text/plain').status(200).send(JSON.stringify(request.body));
+            response.set('content-type', 'text/plain').status(200).send(JSON.stringify(req.home_tab_data));
         });       
     }
 });
