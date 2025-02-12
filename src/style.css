@@ -90,6 +90,7 @@ input::placeholder {
     display: flex;
     top: 41px;
     max-width: 1908px;
+    min-width: 1908px;
     flex-wrap: wrap;
     justify-content: start;
     z-index: 9;
@@ -571,32 +572,37 @@ input::placeholder {
     z-index: 0;
 }
 
-@media (width < 1908px) {
+@media (width < 1891px) {
     .bookmark-container {
         max-width: 1590px;
+        min-width: 1590px;
     }
 }
 
-@media (width < 1590px) {
+@media (width < 1573px) {
     .bookmark-container {
         max-width: 1272px;
+        min-width: 1272px;
     }
 }
 
-@media (width < 1272px) {
+@media (width < 1255px) {
     .bookmark-container {
         max-width: 954px;
+        min-width: 954px;
     }
 }
 
-@media (width < 954px) {
+@media (width < 937px) {
     .bookmark-container {
         max-width: 636px;
+        min-width: 636px;
     }
 }
 
-@media (width < 636px) {
+@media (width < 619px) {
     .bookmark-container {
         max-width: 318px;
+        min-width: 318px;
     }
 }
