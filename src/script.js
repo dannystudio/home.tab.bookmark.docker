@@ -675,12 +675,18 @@ const switchReloadThumbnailType = (type = '') => {
 };
 
 const previewImage = files => {
-    let reader = new FileReader();
-    reader.readAsDataURL(files[0]);
-    reader.onloadend = () => {
-        uploadBuffer = reader.result;
-        qs('.upload-drop-area-container').style.backgroundImage = `url(${reader.result})`;
-    };
+    if (files[0].type != 'image/png' && files[0].type != 'image/jpeg') {
+        showMessagePopup('Invalid file format.');
+        uploadBuffer = undefined;
+    }
+    else {
+        let reader = new FileReader();
+        reader.readAsDataURL(files[0]);
+        reader.onloadend = () => {
+            uploadBuffer = reader.result;
+            qs('.upload-drop-area-container').style.backgroundImage = `url(${reader.result})`;
+        };
+    }
 };
 
 const initUploadImage = () => {
@@ -742,6 +748,10 @@ const submitBookmarkForm = () => {
     const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
+            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer == 'undefined') {
+                showMessagePopup('Please select a file to upload.');
+                return false;
+            }
             const submitType = bookmarkIndex == -1 ? 'Add' : 'Edit';
             let shouldReloadThumbnail = true;
             if (submitType == 'Edit') {
@@ -773,7 +783,6 @@ const submitBookmarkForm = () => {
                     closeBookmarkForm();
                 }
             };
-
             if (shouldReloadThumbnail) {
                 html('.bookmark-form-submit-button', '<img src="image/loading.png">');
                 disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
