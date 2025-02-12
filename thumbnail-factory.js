@@ -18,9 +18,19 @@ const randomColor = () => {
     }
     return color;
 };
-const imageComposer = async (type, width, height, fileProps, useFallback = false) => {
-    const compositeTop = type == 'icon' ? ((thumbnailHeight - width) / 2 - 10) : 0;
-    const compositeLeft = type == 'icon' ? ((thumbnailWidth - height) / 2) : 0; 
+
+const imageComposer = async (fileProps, width, height, useFallback = false) => {
+    const thumbnailType = fileProps.thumbnailType;
+    let compositeTop = 0;thumbnailType == 'icon' || thumbnailType == 'upload' ? ((thumbnailHeight - width) / 2 - 10) : 0;
+    let compositeLeft = 0;
+    if (thumbnailType == 'icon') {
+        compositeTop = (thumbnailHeight - width) / 2 - 10;
+        compositeLeft = (thumbnailWidth - height) / 2;
+    }
+    else if (thumbnailType == 'upload') {
+        compositeLeft = width == thumbnailWidth ? 0 : ((thumbnailWidth - width) / 2);
+        compositeTop = height == thumbnailHeight ? 0 : ((thumbnailHeight - height) / 2);
+    } 
     const baseImage = await sharp({
         create: {
             width: thumbnailWidth,
@@ -66,7 +76,8 @@ const useFallbackThumbnail = async (fileProps) => {
         </svg>
         `;
     thumbnailBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-    return await imageComposer('icon', iconWidth, iconHeight, fileProps, true);
+    fileProps.thumbnailType = 'icon';
+    return await imageComposer(fileProps, iconWidth, iconHeight, true);
 };
 
 const resizeToThumbnail = async (fileProps) => {
@@ -87,27 +98,27 @@ const resizeToThumbnail = async (fileProps) => {
 
 const getImageFromAPI = async (fileProps) => {
     const originPath = fileProps.originPath;
-    const type = fileProps.thumbnailType;
-    const apiUrl = type == 'icon' ? faviconAPI : ((fileProps.screenshotAPI && fileProps.screenshotAPI != '') ? fileProps.screenshotAPI : faviconAPI);
+    const thumbnailType = fileProps.thumbnailType;
+    const apiUrl = thumbnailType == 'icon' ? faviconAPI : ((fileProps.screenshotAPI && fileProps.screenshotAPI != '') ? fileProps.screenshotAPI : faviconAPI);
     return await axios({
-        url: `${apiUrl}${fileProps.originUrl}`,
+        url: `${apiUrl}${fileProps.thumbnailUrl}`,
         method: 'GET',
         responseType: 'stream'
     })
     .then(async response => {
         await response.data.pipe(fs.createWriteStream(originPath));
-        const originBufferWidth = type == 'icon' ? iconWidth : thumbnailWidth;
-        const originBufferHeight = type == 'icon' ? iconHeight : thumbnailHeight;
+        const originBufferWidth = thumbnailType == 'icon' ? iconWidth : thumbnailWidth;
+        const originBufferHeight = thumbnailType == 'icon' ? iconHeight : thumbnailHeight;
         while(!fs.existsSync(originPath)) {
             await sleep(250);
         }
-        if (type == 'icon') {
+        if (thumbnailType == 'icon') {
             thumbnailBuffer = await sharp(originPath)
             .resize(originBufferWidth, originBufferHeight)
             .png()
             .toBuffer()
             .catch(error => console.log(`sharp error > buffer icon: ${error.message}`));
-            return await imageComposer(type, originBufferWidth, originBufferHeight, fileProps);    
+            return await imageComposer(fileProps, originBufferWidth, originBufferHeight);
         }
         else {
             return await resizeToThumbnail(fileProps);
@@ -119,8 +130,42 @@ const getImageFromAPI = async (fileProps) => {
     });
 };
 
+const createThumbnailFromUpload = async (fileProps, uploadBuffer) => {
+    const base64Data = uploadBuffer.replace(/^data:image\/\w+;base64,/, '');
+    const tempBuffer = await sharp(Buffer.from(base64Data, 'base64'))
+    .png()
+    .toBuffer();
+    return await sharp(Buffer.from(tempBuffer))
+    .metadata()
+    .then(async metadata => {
+        if (!metadata || !metadata.width) {
+            throw new Error('unable to get image dimension');
+        }
+        let toWidth = thumbnailHeight;
+        let toHeight = thumbnailHeight;
+        const tempWidth = metadata.width;
+        const tempHeight = metadata.height;
+        if (tempWidth > tempHeight) {
+            toWidth = thumbnailWidth;
+            toHeight = Math.floor(tempHeight / (tempWidth / thumbnailWidth));
+        }
+        else if(tempHeight > tempWidth) {
+            toHeight = thumbnailHeight;
+            toWidth = Math.floor(tempWidth / (tempHeight / thumbnailHeight));
+        }
+        thumbnailBuffer = await sharp(Buffer.from(tempBuffer))
+        .resize(toWidth, toHeight)
+        .toBuffer();
+        return await imageComposer(fileProps, toWidth, toHeight);
+    })
+    .catch(error => {
+        console.log(`uplaod error > buffer from abse64, ${error.message}`);
+        return useFallbackThumbnail(fileProps);
+    });
+};
+
 const createThumbnail = async (fileProps) => {
     return await getImageFromAPI(fileProps);
 };
 
-module.exports = {createThumbnail};
+module.exports = {createThumbnail, createThumbnailFromUpload};

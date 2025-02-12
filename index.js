@@ -1,6 +1,7 @@
 const appName = 'Home Tab Bookmark';
 const version = '1.0.0';
 const express = require('express');
+const formidable = require('express-formidable');
 const ping = require('ping');
 const url = require('url');
 const fs = require('fs');
@@ -45,21 +46,21 @@ const parseUrlParts = address => {
     return url.parse(address, true);
 };
 
-const getThumbnailProperties = (address, thumbnailType, screenshotAPI) => {
-    const urlParts = parseUrlParts(address);
+const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl) => {
+    const urlParts = parseUrlParts(bookmarkUrl);
     const prefix = urlParts.hostname;
     !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
-    const originUrl = address;
     const originName = `${prefix}-${Date.now()}_origin.png`;
     const originPath = `${thumbnailDir}/${originName}`;
     const destName = `${prefix}-${Date.now()}.png`;
     const destPath = `${thumbnailDir}/${destName}`;
-    return {originUrl, thumbnailType, originName, originPath, destName, destPath, screenshotAPI};
+    return {thumbnailType, thumbnailUrl, originName, originPath, destName, destPath, screenshotAPI};
 };
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(formidable());
 app.use(authentication);
 app.use(express.static('public'));
 app.use('/thumbnail',  express.static(thumbnailDir));
@@ -80,38 +81,49 @@ app.get('/script.js', (request, response) => {
     });
 });
 
-app.get('/process', async (request, response) => {
-    const urlParts = parseUrlParts(request.url);
-    const queryParams = urlParts.query;
-    const action = queryParams.action;
-    if (action == 'reload') {
-        const thumbnailType = queryParams.type ? queryParams.type : 'icon';
-        if (queryParams.url) {
-            try {
-                const pingresult = await ping.promise.probe(queryParams.url.replace(/(https|http):\/\//i, '').split('/')[0]);
-                if (pingresult.alive) {
-                    const fileProps = getThumbnailProperties(queryParams.url, thumbnailType, screenshotAPI);
-                    const result = await tf.createThumbnail(fileProps);
-                    if (result.status == 200 && queryParams.delete) {
-                        const deleteThumbnailPath = `${thumbnailDir}/${queryParams.delete}`;
-                        fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
-                    }
-                    response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
-                }
-                else {
-                    response.set('Content-Type', 'text/plain').status(404).send(JSON.stringify({status: 404, message: 'Unable reslove the url, please check the url and then try again.'}));
-                }
+app.post('/process', async (request, response) => {
+    const req = request.fields;
+    const action = req.action;
+    if (action == 'thumbnail') {
+        const bookmarkUrl = req.url;
+        const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'icon';
+        const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
+        const fileProps = getThumbnailProperties(thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl);
+        if (thumbnailType == 'upload' && req.upload_buffer) {
+            const result = await tf.createThumbnailFromUpload(fileProps, req.upload_buffer);
+            if (result.status == 200 && req.thumbnail_delete) {
+                const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
+                fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
             }
-            catch (error) {
-                // nothing for now
+            response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+        }
+        else {
+            if (thumbnailUrl) {
+                try {
+                    const pingResult = await ping.promise.probe(thumbnailUrl.replace(/(https|http):\/\//i, '').split('/')[0]);
+                    if (pingResult.alive) {
+                        const result = await tf.createThumbnail(fileProps);
+                        if (result.status == 200 && req.thumbnail_delete) {
+                            const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
+                            fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
+                        }
+                        response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+                    }
+                    else {
+                        response.set('Content-Type', 'text/plain').status(404).send(JSON.stringify({status: 404, message: 'Unable reslove the url, please check the url and then try again.'}));
+                    }
+                }
+                catch (error) {
+                    // nothing for now
+                }
             }
         }
     }
     else if (action == 'delete') {
-        const deleteThumbnailPath = `${thumbnailDir}/${queryParams.filename}`;
+        const deleteThumbnailPath = `${thumbnailDir}/${req.thumbnail_delete}`;
         try {
             fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
-            response.set('Content-Type', 'text/plain').status(200).send(queryParams.filename);
+            response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
         }
         catch (error) {
             response.status(500).send(error.message);
@@ -123,15 +135,9 @@ app.get('/process', async (request, response) => {
             response.status(404).send('Error, Data File Not Found.') :
             response.set('Content-Type', 'text/plain').status(200).send(data);
         });
-    }
-});
-
-app.post('/process',(request, response) => {
-    const urlParts = parseUrlParts(request.url);
-    const queryParams = urlParts.query;
-    const action = queryParams.action;
-    if (action == 'backup') {
-        fs.writeFile(dataFile, JSON.stringify(request.body), error => {
+    }    
+    else if (action == 'backup') {
+        fs.writeFile(dataFile, req.home_tab_data, error => {
             error ?
             response.status(500).send('Error, Data Writing Error.') :
             response.set('content-type', 'text/plain').status(200).send(JSON.stringify(request.body));

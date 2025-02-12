@@ -20,6 +20,15 @@ div, button, input {
     outline: none !important;
 }
 
+button:disabled, button[disabled] {
+    cursor: default !important;
+}
+
+input::placeholder {
+    color: rgb(185, 185, 185);
+    font-style: italic;
+}
+
 .drag-start-state {
     filter: grayscale(1);
     opacity: 0.1;
@@ -247,12 +256,40 @@ div, button, input {
 }
 
 .bookmark-form {
-    height: 215px;
+    height: 335px;
     overflow: hidden;
 }
 
 .bookmark-form-expand {
-    height: 245px;
+    height: 538px;
+}
+
+.reload-thumbnail-options {
+    display: flex;
+    padding-bottom: 10px;
+    justify-content: space-between;
+}
+
+.reload-thumbnail-options button {
+    width: 30%;
+    padding: 10px;
+    border: 2px solid rgb(243, 243, 243);
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.reload-thumbnail-type-selected {
+    border: 2px solid rgb(159, 159, 159) !important;   
+}
+
+.reload-thumbnail-custom-url, .reload-thumbnail-custom-upload {
+    display: none;
+}
+
+.reload-thumbnail-custom-upload {
+    justify-content: center;
+    padding-bottom: 10px;
 }
 
 .group-form-header, .bookmark-form-header {
@@ -360,33 +397,11 @@ div, button, input {
     width: 160px;
 }
 
-.reload-thumbnail-icon:hover:enabled {
-    width: 200px;
-}
-
 .delete-group-icon, .delete-bookmark-icon {
     color: rgb(255, 118, 118);
 }
 
-.reload-thumbnail-icon {
-    color: rgb(18, 152, 231);
-}
-
-.reload-thumbnail-options {
-    position: relative;
-    display: none;
-    top: 20px;
-    width: 100%;
-    justify-content: space-evenly;
-}
-
-.reload-thumbnail-options div {
-    color: rgb(18, 152, 231);
-    cursor: pointer;
-}
-
-.drop-area-container {
-    display: none;
+.import-drop-area-container, .upload-drop-area-container {
     width: 400px;
     height: 250px;
     padding: 10px 10px 20px 10px;
@@ -395,39 +410,61 @@ div, button, input {
     border-radius: 5px;
 }
 
-.drop-area-content {
+.import-drop-area-container {
+    display: none;
+    width: 400px;
+    height: 250px;    
+}
+
+.upload-drop-area-container {
+    width: 256px;
+    height: 192px;
+    background-size: contain !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;       
+}
+
+.import-drop-area-content, .upload-drop-area-content {
     display: grid;
+}
+
+.import-drop-area-content {
     grid-template-rows: 20px 160px 20px 50px;
 }
 
-.drop-area-content div {
+.upload-drop-area-content {
+    grid-template-rows: 122px 20px 50px;
+}
+
+.import-drop-area-content div, .upload-drop-area-content div {
     display: flex;
     width: 100%;
     justify-content: center;
     align-items: center;
 }
 
-.drop-area-close-button-container {
+.import-close-button-container {
     display: flex;
     justify-content: end !important;
 }
 
-.drop-area-close-button {
+.import-close-button {
     position: relative;
     top: -1px;
     width: 16px !important;
 }
 
-.drop-area-close-button:hover {
+.import-close-button:hover {
     background: rgb(204, 204, 204);
     color: rgb(0, 0, 0);   
 }
 
 .dragging-in {
     background: rgb(140, 197, 140);
+    background-size: 0 0 !important;
 }
 
-.upload-file-input {
+.import-file-input, .upload-file-input {
     display: none;
 }
 

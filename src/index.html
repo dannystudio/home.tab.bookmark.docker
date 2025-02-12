@@ -37,33 +37,48 @@
             <input type="text" value="" maxlength="200" class="text-field">            
             <div class="field-label">Label</div>
             <input type="text" value="" maxlength="30" class="text-field">
+            <div class="field-label">Thumbnail</div>
+            <input type="hidden" value="" class="bookmark-thumbnail-type">
+            <div class="reload-thumbnail-options">
+                <button class="reload-thumbnail-option-icon" onClick="switchReloadThumbnailType('icon'); return false;">Icon</button>
+                <button class="reload-thumbnail-option-screenshot" onClick="switchReloadThumbnailType('screenshot'); return false;">Screenshot</button>
+                <button class="reload-thumbnail-option-upload" onClick="switchReloadThumbnailType('upload'); return false;">Upload</button>
+            </div>
+            <input type="text" value="" maxlength="200" class="text-field reload-thumbnail-custom-url">
+            <div class="reload-thumbnail-custom-upload">
+                <div class="upload-drop-area-container" listen-to-event="false">
+                    <div class="upload-drop-area-content">
+                        <div>Please drop an image here</div>
+                        <div>OR</div>
+                        <div><label class="button select-file-button" for="uploadField">Select a File</label></div>
+                    </div>
+                </div>
+            </div> 
             <div>
                 <button class="button bookmark-form-submit-button"></button>
             </div>
         </form>
         <div class="edit-bookmark-icon-container">
             <button class="function-icon delete-bookmark-icon" onClick="deleteItem()"><img src="image/delete.png"><span>Delete Bookmark</span></button>
-            <button class="function-icon reload-thumbnail-icon" click-registered="false"><img src="image/reload.png"><span>Reload Thumbnail</span></button>
-        </div>
-            <div class="reload-thumbnail-options">
-                <div class="field-label center" onClick="reloadThumbnail('icon')">Use Site Icon</div>
-                <div class="field-label center" onClick="reloadThumbnail('screen')">Use Site Screenshot</div>
-            </div>       
+        </div>       
     </div>
-    <div class="drop-area-container" listen-to-event="false">
-        <form name="uploadForm" class="upload-form">
-            <input type="file" id="uploadField" accept="application/json" onchange="importData(this.files)" class="upload-file-input">
-        </form>
-        <div class="drop-area-content">
-            <div class="drop-area-close-button-container">
-                <div class="form-close-button drop-area-close-button" onClick="closeDropContainer()" >&#10006;</div>
+    <div class="import-drop-area-container" listen-to-event="false">
+        <div class="import-drop-area-content">
+            <div class="import-close-button-container">
+                <div class="form-close-button import-close-button" onClick="closeImportContainer()" >&#10006;</div>
             </div>
-            <div>Please drop a file here to import</div>
+            <div>Please drop a file here</div>
             <div>OR</div>
-            <div><label class="button select-file-button" for="uploadField">Select a File</label></div>
+            <div><label class="button select-file-button" for="importField">Select a File</label></div>
         </div>
     </div>    
 </div>
+<form name="importForm">
+    <input type="file" id="importField" accept="application/json" onchange="importData(this.files)" class="import-file-input">
+</form>
+<form name="uploadForm">
+    <input type="file" id="uploadField" accept="image/png" onchange="previewImage(this.files)" class="upload-file-input">
+</form>
 <div class="message-mask">
     <div class="message-container" onClick="closeMessagePopup();">
         <div class="message-body"></div>

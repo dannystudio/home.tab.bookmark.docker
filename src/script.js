@@ -1,8 +1,9 @@
 let homeTabData = {};
-let groupForm, bookmarkForm, uploadForm;
+let groupForm, bookmarkForm, importForm;
 let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
+let uploadBuffer;
 
 const qs = (selector, all = false) => {
     return (typeof selector === 'string' ? (!all ? document.querySelector(selector) : document.querySelectorAll(selector)) : selector);
@@ -102,7 +103,13 @@ const verifyData = (data) => {
 };
 
 const getDataFromServer = (isInit) => {
-    fetch('/process/?action=restore')
+    const formData = new FormData();
+    formData.append('action', 'restore');
+    fetch('/process/', {
+        method: 'POST',
+        header: {'Content-Type': 'multipart/form-data'},
+        body: formData
+    })    
     .then(resp => resp.json())
     .then(data => {
         if (verifyData(data.home_tab_data)) {
@@ -130,10 +137,13 @@ const setDataToServer = (silent = false) => {
     if (verifyData(homeTabData)) {
         homeTabData.timestamp = Date.now();
         homeTabData.version = version;
-        fetch('/process/?action=backup', {
+        const formData = new FormData();
+        formData.append('action', 'backup');
+        formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
+        fetch('/process/', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({home_tab_data: homeTabData})
+            header: {'Content-Type': 'multipart/form-data'},
+            body: formData
         })
         .then(resp => {
             resp.ok && !silent && showMessagePopup('Data backup successfully.', 'info');
@@ -191,12 +201,12 @@ const hide = (...selectors) => {
 };
 
 const disableForm = (formObj, ...additionalSelector) => {
-    formObj.childNodes.forEach(child => child.disabled = true);
+    Array.from(formObj.elements).forEach(elem => elem.disabled = true);
     [...additionalSelector].forEach(sel => qs(sel).disabled = true);
 };
 
 const enableForm = (formObj, ...additionalSelector) => {
-    formObj.childNodes.forEach(elem => elem.disabled = false);
+    Array.from(formObj.elements).forEach(elem => elem.disabled = false);
     [...additionalSelector].forEach(sel => qs(sel).disabled = false);
 };
 
@@ -499,7 +509,8 @@ const submitGroupForm = () => {
 const closeBookmarkForm = () => {
     bookmarkForm.reset();
     editingMemo.length = 0;
-    enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon', '.reload-thumbnail-icon');
+    switchReloadThumbnailType();
+    enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
     removeClass('.bookmark-form', 'form-disabled', 'bookmark-form-expand');
     hide('.popup-mask', '.bookmark-form', '.edit-bookmark-icon-container');
     removeClass('.bookmark-form', 'form-container-show');
@@ -508,20 +519,6 @@ const closeBookmarkForm = () => {
 
 const showBookmarkForm = () => {
     closeAppMenu();
-    const reloadIcon = qs('.reload-thumbnail-icon');
-    let clickEventRegisted = reloadIcon.getAttribute('click-registered') == 'true';
-    if (!clickEventRegisted) {
-        if (typeof hasScreenshotAPI !== 'undefined' && hasScreenshotAPI) {
-            reloadIcon.addEventListener('click', showReloadThumbnailOption);
-        }
-        else {
-            reloadIcon.addEventListener('click', () => {
-                reloadThumbnail('icon');
-            });
-        }
-        attr(reloadIcon, {'click-registered': (!clickEventRegisted).toString()});
-        show('.reload-thumbnail-options');
-    }
     const type = getValue('.bookmark-form-index') == -1 ? 'Add' : 'Edit';
     html('.bookmark-form-header', `${type}  Bookmark`);
     html('.bookmark-form-submit-button', type == 'Add' ? 'Add' : 'Save');
@@ -634,10 +631,15 @@ const editBookmark = (bookmark, bookmarkIndex) => {
     const bookmarkLabel = bookmark.label;
     const bookmarkUrl = bookmark.url;
     const bookmarkThumbnail = bookmark.thumbnail;
+    const bookmarkThumbnailType = bookmark.thumbnail_type || 'icon';
+    const bookmarkThumbnailCUrl = bookmark.thumbnail_custom_url || '';
+    switchReloadThumbnailType(bookmarkThumbnailType);
     setFormValues(bookmarkForm, [
         bookmarkIndex,
         bookmarkUrl,
         bookmarkLabel,
+        bookmarkThumbnailType,
+        bookmarkThumbnailCUrl
     ]);
     show('.edit-bookmark-icon-container');
     editingMemo.push(bookmarkIndex, bookmarkLabel, bookmarkUrl, bookmarkThumbnail);
@@ -647,7 +649,78 @@ const editBookmark = (bookmark, bookmarkIndex) => {
 
 const addBookmark = () => {
     setValue('.bookmark-form-index', -1);
+    switchReloadThumbnailType('icon');
     showBookmarkForm();
+};
+
+const switchReloadThumbnailType = (type = '') => {
+    const curretnType = getValue('.bookmark-thumbnail-type');
+    if (curretnType != type) {
+        curretnType != '' && removeClass(`.reload-thumbnail-option-${curretnType}`, 'reload-thumbnail-type-selected');
+        type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
+    }
+    if (type != 'upload') {
+        attr('.reload-thumbnail-custom-url', {placeholder: `Custom url for ${type}`});
+        hide('.reload-thumbnail-custom-upload');
+        show('.reload-thumbnail-custom-url');
+        removeClass('.bookmark-form', 'bookmark-form-expand');
+    }
+    else {
+        hide('.reload-thumbnail-custom-url');
+        show('.reload-thumbnail-custom-upload');
+        addClass('.bookmark-form', 'bookmark-form-expand');
+        initUploadImage();
+    }
+    setValue('.bookmark-thumbnail-type', type);
+};
+
+const previewImage = files => {
+    let reader = new FileReader();
+    reader.readAsDataURL(files[0]);
+    reader.onloadend = () => {
+        uploadBuffer = reader.result;
+        qs('.upload-drop-area-container').style.backgroundImage = `url(${reader.result})`;
+    };
+};
+
+const initUploadImage = () => {
+    const preventDefaults = event => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+    
+    const dragEnter = () => {
+        addClass('.upload-drop-area-container', 'dragging-in');
+    };
+      
+    const dragLeave  = () => {
+        removeClass('.upload-drop-area-container', 'dragging-in');
+    };
+
+    const handleDrop = event => {
+        const dt = event.dataTransfer;
+        const files = dt.files;
+        previewImage(files);
+    };
+
+    const dropArea = qs('.upload-drop-area-container');
+    const listenToEvents = dropArea.getAttribute('listen-to-event') == 'true';
+    if (!listenToEvents) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+            dropArea.addEventListener(event, preventDefaults);
+        });
+          
+        ['dragenter', 'dragover'].forEach(event => {
+            dropArea.addEventListener(event, dragEnter);
+        });
+          
+        ['dragleave', 'drop'].forEach(event => {
+            dropArea.addEventListener(event, dragLeave);
+        });
+        attr(dropArea, {'listen-to-event': (!listenToEvents).toString()});
+    }
+    dropArea.style.backgroundImage = '';
+    dropArea.addEventListener('drop', handleDrop, false);
 };
 
 const checkExistingBookmarkLabel = (groupIndex, bookmarkIndex, bookmarkLabel) => {
@@ -666,11 +739,21 @@ const checkExistingBookmarkLabel = (groupIndex, bookmarkIndex, bookmarkLabel) =>
 
 const submitBookmarkForm = () => {
     const currentGroup = homeTabData.current_group;
-    const [bookmarkIndex, bookmarkUrl, bookmarkLabel]= getFormValues(bookmarkForm);   
+    const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
-            const type = bookmarkIndex == -1 ? 'Add' : 'Edit';
-            let reloadThumbnail = true;
+            const submitType = bookmarkIndex == -1 ? 'Add' : 'Edit';
+            let shouldReloadThumbnail = true;
+            if (submitType == 'Edit') {
+                const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
+                if (targetDataBlock.url == bookmarkUrl 
+                    && targetDataBlock.thumbnail_type == bookmarkThumbnailType 
+                    && targetDataBlock.thumbnail_custom_url == bookmarkThumbnailCUrl
+                    && typeof uploadBuffer == 'undefined'
+                ) {
+                    shouldReloadThumbnail = false;
+                }
+            }
             const updateBookmark = (filename) => {
                 const bookmarks = homeTabData.groups[currentGroup].bookmarks;
                 if (bookmarkIndex == -1) {
@@ -678,8 +761,10 @@ const submitBookmarkForm = () => {
                     bookmarks[newIndex] = {};
                 }
                 else newIndex = bookmarkIndex;
-                bookmarks[newIndex].label = bookmarkLabel,
-                bookmarks[newIndex].url = bookmarkUrl
+                bookmarks[newIndex].label = bookmarkLabel;
+                bookmarks[newIndex].url = bookmarkUrl;
+                bookmarks[newIndex].thumbnail_type = bookmarkThumbnailType;
+                bookmarks[newIndex].thumbnail_custom_url = bookmarkThumbnailCUrl;
                 if (filename) {
                     bookmarks[newIndex].thumbnail = filename;
                 }
@@ -688,15 +773,24 @@ const submitBookmarkForm = () => {
                     closeBookmarkForm();
                 }
             };
-            if (type == 'Edit') {
-                const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
-                reloadThumbnail = targetDataBlock.url != bookmarkUrl;
-            }
-            if (reloadThumbnail) {
+
+            if (shouldReloadThumbnail) {
                 html('.bookmark-form-submit-button', '<img src="image/loading.png">');
-                disableForm(bookmarkForm, '.close-bookmark-form');
+                disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
                 const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
-                fetch(`/process/?action=reload&type=${type}&url=${bookmarkUrl}&delete=${deleteThumbnail}`)
+                const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
+                const formData = new FormData();
+                formData.append('action', 'thumbnail');
+                formData.append('url', bookmarkUrl);
+                formData.append('thumbnail_type', bookmarkThumbnailType);
+                formData.append('thumbnail_url', thumbnailSourceUrl);
+                formData.append('thumbnail_delete', deleteThumbnail);
+                formData.append('upload_buffer', uploadBuffer);
+                fetch('/process/', {
+                    method: 'POST',
+                    header: {'Content-Type': 'multipart/form-data'},
+                    body: formData
+                })
                 .then(resp => resp.json())
                 .then(data => {
                     if (data.message) {
@@ -741,7 +835,14 @@ const preceedDeleteItem = () => {
         }
     }
     else {
-        fetch(`/process/?action=delete&filename=${bookmarkThumbnail}`)
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('thumbnail_delete', bookmarkThumbnail);
+        fetch('/process/', {
+            method: 'POST',
+            header: {'Content-Type': 'multipart/form-data'},
+            body: formData
+        })               
         .then(resp => {
             if (resp.ok) {
                 const bookmarkHolder = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => {
@@ -778,43 +879,16 @@ const deleteItem = () => {
     });
 };
 
-const showReloadThumbnailOption = () => {
-    addClass('.bookmark-form', 'bookmark-form-expand');
-};
-
-const reloadThumbnail = type => {
-    const [bookmarkIndex, , bookmarkUrl, deleteThumbnail] = editingMemo;
-    html('.bookmark-form-submit-button', '<img src="image/loading.png">');
-    disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon', '.reload-thumbnail-icon');
-    addClass('.bookmark-form', 'form-disabled');
-    removeClass('.bookmark-form', 'bookmark-form-expand');
-    const currentGroup = homeTabData.current_group;
-    fetch(`/process/?action=reload&type=${type}&url=${bookmarkUrl}&delete=${deleteThumbnail}`)
-    .then(resp => resp.json())
-    .then(data => {
-        data.message && showMessagePopup(data.message);
-        homeTabData.groups[currentGroup].bookmarks[bookmarkIndex].thumbnail = data.filename;
-        if (setDataToLocal()) {
-            goToGroup(currentGroup);
-            closeBookmarkForm();
-        }
-    })
-    .catch(error => {
-        showMessagePopup('Error, please try again later.');
-        closeBookmarkForm();
-    });     
-};
-
-const closeDropContainer = () => {
-    uploadForm.reset();    
-    hide('.popup-mask', '.drop-area-container');
+const closeImportContainer = () => {
+    importForm.reset();    
+    hide('.popup-mask', '.import-drop-area-container');
 };
 
 const importData = (files) => {
     const uploadFile = files[0];    // only handle the first file
     if (uploadFile.type != 'application/json') {
         showMessagePopup('Invalid file format.');
-        uploadForm.reset();
+        importForm.reset();
     }
     else {
         const reader = new FileReader();
@@ -827,17 +901,17 @@ const importData = (files) => {
                     setDataToLocal(true);
                     renderGroups();
                     goToGroup(homeTabData.current_group);
-                    closeDropContainer();
+                    closeImportContainer();
                     showMessagePopup('Data import successfully.', 'info');
                 }
                 else {
                     showMessagePopup('Invalid file data.');
-                    uploadForm.reset();                   
+                    importForm.reset();                   
                 }
             }
             catch (error) {
                 showMessagePopup('Error, please try again later.');
-                uploadForm.reset(); 
+                importForm.reset(); 
             }
         };
         reader.readAsText(uploadFile);
@@ -851,20 +925,20 @@ const initImportData = () => {
     };
     
     const dragEnter = () => {
-        addClass('.drop-area-container', 'dragging-in');
+        addClass('.import-drop-area-container', 'dragging-in');
     };
       
     const dragLeave  = () => {
-        removeClass('.drop-area-container', 'dragging-in');
+        removeClass('.import-drop-area-container', 'dragging-in');
     };
 
     const handleDrop = event => {
         const dt = event.dataTransfer;
         const files = dt.files;
         importData(files);
-    }
+    };
 
-    const dropArea = qs('.drop-area-container');
+    const dropArea = qs('.import-drop-area-container');
     const listenToEvents = dropArea.getAttribute('listen-to-event') == 'true';
     if (!listenToEvents) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
@@ -883,7 +957,7 @@ const initImportData = () => {
     dropArea.addEventListener('drop', handleDrop, false);
     closeAppMenu();
     show('.popup-mask');
-    show('.drop-area-container', 'block');
+    show('.import-drop-area-container', 'block');
 };
 
 const exportData = () => {
@@ -916,7 +990,7 @@ const handleKeyPressed = event => {
         else if (qs('.popup-mask').style.display != 'none') {
             closeGroupForm();
             closeBookmarkForm();
-            closeDropContainer();
+            closeImportContainer();
         }
         closeAppMenu();
     }
@@ -943,7 +1017,7 @@ const doneInit = () => {
 const init = () => {
     if (localStorage) {
         renderAppMenuContent();
-        [groupForm, bookmarkForm, uploadForm] = document.forms;
+        [groupForm, bookmarkForm, importForm] = document.forms;
         !localStorage.getItem('home-tab-data') ? getDataFromServer(true) : getDataFromLocal(true);
     }
     else {
