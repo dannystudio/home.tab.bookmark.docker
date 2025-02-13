@@ -63,6 +63,9 @@ https://image.thum.io/get/width/256/crop/900/
 ### OPEN_IN_NEW_TAB ###
 Bookmark is opened in the same tab by default. Set this variable to true to enable bookmark opened in new tab.
 
+### MAX_BOOKMARK_PER_ROW ###
+Use this variable to change the number of bookmarks per row to fit best to your browser. (default is 6).
+
 ### BASIC_AUTH ###
 Basic authentication is off by default, set this variable to true to enable basic authentication.
 
