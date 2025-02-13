@@ -11,7 +11,7 @@
     "buildtest": "npm run --silent build && node index.js",
     "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run --silent build && docker build -t dannystudio/home-tab-bookmark .",
     "dockertest": "docker run -p 3000:3000 dannystudio/home-tab-bookmark",
-    "dockersave": "docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
+    "dockersave": "npm run dockerbuild && echo build completed, now save to tar... &&docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
   },
   "author": "",
   "license": "ISC",

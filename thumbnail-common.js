@@ -1,7 +1,6 @@
 const sharp = require('sharp');
 const fs = require('fs');
 
-
 const thumbnailWidth = 256;
 const thumbnailHeight = 192;
 const iconWidth = 64;

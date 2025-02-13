@@ -16,6 +16,7 @@ const port = process.env.PORT || 3000;
 
 const dataFile = './data/home-tab-bookmark-data.json';
 const thumbnailDir = './data/thumbnail';
+const recycleBin = './data/.recycle';
 
 const authentication = (request, response, next) => {
     if (enableBasicAuth == 'false') {
@@ -56,9 +57,9 @@ const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, book
     return {thumbnailType, thumbnailUrl, originName, originPath, destName, destPath, screenshotAPI};
 };
 
-const deleteOldThumbnail = (filename) => {
-    const deleteThumbnailPath = `${thumbnailDir}/${filename}`;
-    fs.existsSync(deleteThumbnailPath) && fs.unlinkSync(deleteThumbnailPath);
+const recycleOldThumbnail = (filename) => {
+    !fs.existsSync(recycleBin) && fs.mkdirSync(recycleBin);
+    fs.renameSync(`${thumbnailDir}/${filename}`, `${recycleBin}/${filename}`);
 };
 
 const app = express();
@@ -89,6 +90,7 @@ app.post('/process', async (request, response) => {
     const req = request.fields;
     const action = req.action;
     if (action == 'thumbnail') {
+        !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
         const bookmarkUrl = req.url;
         const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'icon';
         const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
@@ -99,7 +101,7 @@ app.post('/process', async (request, response) => {
         await tf.createThumbnail(fileProps)
         .then(result => {
             if (result.status == 200 && req.thumbnail_delete) {
-                deleteOldThumbnail(req.thumbnail_delete);
+                recycleOldThumbnail(req.thumbnail_delete);
             }
             response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
         })
@@ -110,7 +112,7 @@ app.post('/process', async (request, response) => {
     }
     else if (action == 'delete') {
         try {
-            deleteOldThumbnail(req.thumbnail_delete);
+            recycleOldThumbnail(req.thumbnail_delete);
             response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
         }
         catch (error) {
@@ -119,11 +121,26 @@ app.post('/process', async (request, response) => {
         }
     }
     else if (action == 'restore') {
-        fs.readFile(dataFile, (error, data) => {
-            error ? 
-            response.status(404).send('Error, Data File Not Found.') :
-            response.set('Content-Type', 'text/plain').status(200).send(data);
-        });
+        if (fs.existsSync(dataFile)) {
+            fs.readFile(dataFile, async (error, data) => {
+                const dataObj = JSON.parse(data);
+                await dataObj.home_tab_data.groups.forEach(group => {
+                    group.bookmarks.forEach(bookmark => {
+                        const filename = bookmark.thumbnail;
+                        if (!fs.existsSync(`${thumbnailDir}/${filename}`)) {
+                            fs.existsSync(`${recycleBin}/${filename}`) && fs.renameSync(`${recycleBin}/${filename}`, `${thumbnailDir}/${filename}`);
+                        }
+                    })
+                });
+                response.set('Content-Type', 'text/plain').status(200).send(data);
+            });
+        }
+        else {
+            const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
+            fs.writeFile(dataFile, dataSchema, error => {
+                response.set('Content-Type', 'text/plain').status(200).send(dataSchema);
+            });
+        }
     }    
     else if (action == 'backup') {
         fs.writeFile(dataFile, req.home_tab_data, error => {

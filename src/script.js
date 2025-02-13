@@ -116,7 +116,6 @@ const getDataFromServer = (isInit) => {
             homeTabData = data.home_tab_data;
             if (isInit) {
                 doneInit();
-                setDataToServer(true);
             }
             else {
                 renderGroups();
@@ -489,6 +488,7 @@ const submitGroupForm = () => {
                 homeTabData.groups[groupIndex].name = groupName;
             }
             if (setDataToLocal()) {
+                setDataToServer(true);
                 renderGroups();
                 goToGroup(groupIndex);
                 setGruopVisibility();
@@ -781,6 +781,7 @@ const submitBookmarkForm = () => {
                     bookmarks[newIndex].thumbnail = filename;
                 }
                 if (setDataToLocal()) {
+                    setDataToServer(true);
                     goToGroup(currentGroup); 
                     closeBookmarkForm();
                 }

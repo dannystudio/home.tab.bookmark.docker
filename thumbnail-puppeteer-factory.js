@@ -1,4 +1,5 @@
-// puppeteer needs more works when runs in docker, let's use elestio/ws-screenshot docker for screenshot
+// puppeteer needs more works when running in docker environment, suggest to use elestio/ws-screenshot docker for the screenshot instead
+// uncomment the following code to use puppeteer in non-docker environment
 
 // const tc = require('./thumbnail-common');
 
