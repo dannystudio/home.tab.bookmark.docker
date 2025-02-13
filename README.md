@@ -13,10 +13,12 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Firefox
 
 ## Features
+
 **Bookmark Group**
 * Add groups.
 * Right click on group name to edit/remove group.
 * Drag and drop group to change the order of the group.
+
 **Bookmark**
 * Add bookmark in group.
 * Right click on bookmark to edit/remove bookmark.
@@ -24,6 +26,7 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * option to use screenshot for bookmark thumbnail. (API required, see SCREENSHOT_API in ENV Variables below)
 * drag and drop bookmark to change the position of bookmark
 * drag and drop bookmark to move to another group
+
 **Data**
 * Bookmark data store in browser's local storage.
 * Import Data to (browser's local storage).
@@ -31,8 +34,10 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Backup Data (to container).
 * Restore Data (from container).
 * Data will backup to server automatically when add/edit group/bookmark. (delete/move group/bookmark are not).
+
 **Protection**
 * Basic authentication available as an option. (see BASIC_AUTH in ENV Variables below).
+
 **Keyboard Intergration**
 * Force to open bookmark in new tab by holding shift key when click on bookmark.
 * close popups including add, edit, import, and messages by press esc key.
