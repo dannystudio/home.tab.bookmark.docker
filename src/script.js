@@ -1021,6 +1021,9 @@ const doneInit = () => {
     document.addEventListener('keyup', handleKeyReleased);
     document.addEventListener("visibilitychange", () => {forceOpenInNewTab = false});
     window.addEventListener('resize', setGruopVisibility);
+    typeof hasScreenshotAPI !== 'undefined' && hasScreenshotAPI ?
+    show('.reload-thumbnail-option-screenshot', 'block') : 
+    show('.reload-thumbnail-option-noscreenshot', 'block');
     html('.footer', `${appName} v${version}`);
     setGruopVisibility();
 };

@@ -280,6 +280,19 @@ input::placeholder {
     cursor: pointer;
 }
 
+.reload-thumbnail-option-noscreenshot {
+    width: 25%;
+    padding: 10px;
+    border: 2px solid rgb(237 237 237);
+    border-radius: 5px;
+    color: rgb(205 205 205);
+    text-align: center;    
+}
+
+.reload-thumbnail-option-screenshot, .reload-thumbnail-option-noscreenshot {
+    display: none;
+}
+
 .reload-thumbnail-type-selected {
     border: 2px solid rgb(159, 159, 159) !important;   
 }

@@ -78,7 +78,7 @@ app.get('/script.js', (request, response) => {
         }
         let appVariables = `const appName='${appName}',version='${version}'`;
         let envVariables = '';
-        ((screenshotAPI != 'false' && screenshotAPI != 'none') || typeof tf.puppeteerExtra === 'object') && (envVariables += ',hasScreenshotAPI=true');
+        ((screenshotAPI != 'false' && screenshotAPI != 'none') || tf.usePuppeteer) && (envVariables += ',hasScreenshotAPI=true');
         openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
         const appendedCode = `${appVariables}${envVariables};${originCode}`;
         response.set('Content-Type', 'text/javascript').send(appendedCode);
@@ -94,33 +94,19 @@ app.post('/process', async (request, response) => {
         const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
         const fileProps = getThumbnailProperties(thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl);
         if (thumbnailType == 'upload' && req.upload_buffer) {
-            await tf.createThumbnailFromUpload(fileProps, req.upload_buffer)
-            .then(result => {
-                if (result.status == 200 && req.thumbnail_delete) {
-                    deleteOldThumbnail(req.thumbnail_delete);
-                }
-                response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
-            })
-            .catch(error => {
-                console.log(error.message);
-                response.status(500).send(error.message);
-            });
+            fileProps.uploadBuffer = req.upload_buffer;
         }
-        else {
-            if (thumbnailUrl) {
-                await tf.createThumbnail(fileProps)
-                .then(result => {
-                    if (result.status == 200 && req.thumbnail_delete) {
-                        deleteOldThumbnail(req.thumbnail_delete);
-                    }
-                    response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
-                })
-                .catch(error => {
-                    console.log(error.message);
-                    response.status(500).send(error.message);
-                });
+        await tf.createThumbnail(fileProps)
+        .then(result => {
+            if (result.status == 200 && req.thumbnail_delete) {
+                deleteOldThumbnail(req.thumbnail_delete);
             }
-        }
+            response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+        })
+        .catch(error => {
+            console.log(error.message);
+            response.status(500).send(error.message);
+        });
     }
     else if (action == 'delete') {
         try {
