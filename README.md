@@ -33,7 +33,7 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Expprt Data from (browser's local storage).
 * Backup Data (to container).
 * Restore Data (from container).
-* Data will backup to server automatically when add/edit group/bookmark. (delete/move group/bookmark are not).
+* Data will backup to server automatically when add/edit group/bookmark. (import data and delete/move group/bookmark are not).
 
 **Protection**
 * Basic authentication available as an option. (see BASIC_AUTH in ENV Variables below).
