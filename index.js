@@ -8,6 +8,7 @@ const tf = require('./thumbnail-factory');
 
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
+const maxBookmarkPerRow = process.env.MAX_BOOKMARK_PER_ROW || 6;
 const openInNewTab = process.env.OPEN_IN_NEW_TAB || 'false';
 const enableBasicAuth = process.env.BASIC_AUTH || 'false';
 const username = process.env.USER_NAME || 'admin';
@@ -80,6 +81,8 @@ app.get('/script.js', (request, response) => {
         let appVariables = `const appName='${appName}',version='${version}'`;
         let envVariables = '';
         ((screenshotAPI != 'false' && screenshotAPI != 'none') || tf.usePuppeteer) && (envVariables += ',hasScreenshotAPI=true');
+        isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow);
+        envVariables += `,maxBookmarkPerRow=${maxBookmarkPerRow}`;
         openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
         const appendedCode = `${appVariables}${envVariables};${originCode}`;
         response.set('Content-Type', 'text/javascript').send(appendedCode);

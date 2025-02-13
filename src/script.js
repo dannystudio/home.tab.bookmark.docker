@@ -3,7 +3,7 @@ let groupForm, bookmarkForm, importForm;
 let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
-let uploadBuffer;
+let uploadBuffer, bookmarkSpace;
 
 const qs = (selector, all = false) => {
     return (typeof selector === 'string' ? (!all ? document.querySelector(selector) : document.querySelectorAll(selector)) : selector);
@@ -994,6 +994,12 @@ const toggleAppMenu = () => {
     attr(menuContentDiv, {displayed: (!displayed).toString()});
 };
 
+const setBookmarkContainer = () => {
+    const bookmarkPerRow = Math.min(Math.floor((window.innerWidth + 17) / bookmarkSpace), maxBookmarkPerRow);
+    qs('.bookmark-container').style.maxWidth = `${bookmarkSpace * bookmarkPerRow}px`;
+    qs('.bookmark-container').style.minWidth = `${bookmarkSpace * bookmarkPerRow}px`;
+};
+
 const handleKeyPressed = event => {
     if (event.key == 'Escape') {
         if (qs('.message-mask').style.display != 'none') {
@@ -1016,17 +1022,28 @@ const handleKeyReleased = event => {
 const doneInit = () => {
     renderGroups();
     goToGroup(homeTabData.current_group);
+    if (qs('#bookmark0') && !bookmarkSpace) {
+        const bookmarkSpec = getComputedStyle(qs('#bookmark0'));
+        const bookmarkWidth = parseInt(bookmarkSpec.width);
+        const bookmarkMargin = parseInt(bookmarkSpec.margin);
+        const bookmarkBorder = parseInt(bookmarkSpec.border);
+        bookmarkSpace = bookmarkWidth + ((bookmarkMargin + bookmarkBorder) * 2);
+    }    
     document.addEventListener("dragover", event => event.preventDefault());
     document.addEventListener("scroll", closeAppMenu);
     document.addEventListener('keydown', handleKeyPressed);
     document.addEventListener('keyup', handleKeyReleased);
     document.addEventListener("visibilitychange", () => {forceOpenInNewTab = false});
-    window.addEventListener('resize', setGruopVisibility);
+    window.addEventListener('resize', () => {
+        setGruopVisibility();
+        setBookmarkContainer();
+    });
     typeof hasScreenshotAPI !== 'undefined' && hasScreenshotAPI ?
     show('.reload-thumbnail-option-screenshot', 'block') : 
     show('.reload-thumbnail-option-noscreenshot', 'block');
     html('.footer', `${appName} v${version}`);
     setGruopVisibility();
+    setBookmarkContainer();
 };
 
 const init = () => {

@@ -3,10 +3,6 @@
 # Use an appropriate Node.js base image
 FROM node:18-alpine
 
-# Set ENV vairables
-ENV SCREENSHOT_API none
-ENV OPEN_IN_NEW_TAB false
-
 # Set the working directory inside the container
 WORKDIR /
 
