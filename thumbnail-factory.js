@@ -11,7 +11,7 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
 const getImageFromAPI = async (fileProps) => {
     const originPath = fileProps.originPath;
     const thumbnailType = fileProps.thumbnailType;
-    const apiUrl = thumbnailType == 'icon' ? faviconAPI : ((fileProps.screenshotAPI && fileProps.screenshotAPI != '') ? fileProps.screenshotAPI : faviconAPI);
+    const apiUrl = thumbnailType == 'favicon' ? faviconAPI : ((fileProps.screenshotAPI && fileProps.screenshotAPI != '') ? fileProps.screenshotAPI : faviconAPI);
     return await axios({
         url: `${apiUrl}${fileProps.thumbnailUrl}`,
         method: 'GET',
@@ -22,7 +22,7 @@ const getImageFromAPI = async (fileProps) => {
         while(!fs.existsSync(originPath)) {
             await sleep(250);
         }
-        if (thumbnailType == 'icon') {
+        if (thumbnailType == 'favicon') {
             const metadata = await sharp(originPath).metadata();
             const originBufferWidth = (!metadata || !metadata.width) ? tc.iconWidth : metadata.width;
             const originBufferHeight = (!metadata || !metadata.height) ? tc.iconHeight : metadata.height;

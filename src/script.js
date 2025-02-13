@@ -633,7 +633,7 @@ const editBookmark = (bookmark, bookmarkIndex) => {
     const bookmarkLabel = bookmark.label;
     const bookmarkUrl = bookmark.url;
     const bookmarkThumbnail = bookmark.thumbnail;
-    const bookmarkThumbnailType = bookmark.thumbnail_type || 'icon';
+    const bookmarkThumbnailType = bookmark.thumbnail_type || 'favicon';
     const bookmarkThumbnailCUrl = bookmark.thumbnail_custom_url || '';
     switchReloadThumbnailType(bookmarkThumbnailType);
     setFormValues(bookmarkForm, [
@@ -651,7 +651,7 @@ const editBookmark = (bookmark, bookmarkIndex) => {
 
 const addBookmark = () => {
     setValue('.bookmark-form-index', -1);
-    switchReloadThumbnailType('icon');
+    switchReloadThumbnailType('favicon');
     showBookmarkForm();
 };
 
@@ -662,7 +662,7 @@ const switchReloadThumbnailType = (type = '') => {
         type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
     }
     if (type != 'upload') {
-        attr('.reload-thumbnail-custom-url', {placeholder: `Custom url for ${type}`});
+        attr('.reload-thumbnail-custom-url', {placeholder: `Get ${type} from this url`});
         hide('.reload-thumbnail-custom-upload');
         show('.reload-thumbnail-custom-url');
         removeClass('.bookmark-form', 'bookmark-form-expand');

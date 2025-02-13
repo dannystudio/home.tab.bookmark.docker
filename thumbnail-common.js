@@ -18,7 +18,7 @@ const imageComposer = async (fileProps, width, height, useFallback = false) => {
     const thumbnailType = fileProps.thumbnailType;
     let compositeTop = 0;
     let compositeLeft = 0;
-    if (thumbnailType == 'icon') {
+    if (thumbnailType == 'favicon') {
         compositeTop = (thumbnailHeight - width) / 2 - 10;
         compositeLeft = (thumbnailWidth - height) / 2;
     }
@@ -71,7 +71,7 @@ const useFallbackThumbnail = async (fileProps) => {
         </svg>
         `;
     fileProps.thumbnailBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-    fileProps.thumbnailType = 'icon';
+    fileProps.thumbnailType = 'favicon';
     return await imageComposer(fileProps, iconWidth, iconHeight, true);
 };
 

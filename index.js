@@ -60,7 +60,7 @@ const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, book
 
 const recycleOldThumbnail = (filename) => {
     !fs.existsSync(recycleBin) && fs.mkdirSync(recycleBin);
-    fs.renameSync(`${thumbnailDir}/${filename}`, `${recycleBin}/${filename}`);
+    fs.existsSync(`${thumbnailDir}/${filename}`) && fs.renameSync(`${thumbnailDir}/${filename}`, `${recycleBin}/${filename}`);
 };
 
 const app = express();
@@ -95,7 +95,7 @@ app.post('/process', async (request, response) => {
     if (action == 'thumbnail') {
         !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
         const bookmarkUrl = req.url;
-        const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'icon';
+        const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'favicon';
         const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
         const fileProps = getThumbnailProperties(thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl);
         if (thumbnailType == 'upload' && req.upload_buffer) {
