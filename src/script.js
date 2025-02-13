@@ -574,7 +574,9 @@ const moveBookmark = event => {
                 homeTabData.groups[groupIndex].bookmarks.push({
                     label: sourceBookmark.label,
                     url: sourceBookmark.url,
-                    thumbnail: sourceBookmark.thumbnail
+                    thumbnail: sourceBookmark.thumbnail,
+                    thumbnail_type: sourceBookmark.thumbnail_type,
+                    thumbnail_custom_url: sourceBookmark.thumbnail_custom_url
                 });
                 newBookmarks = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => index != sourceIndex);
             }
