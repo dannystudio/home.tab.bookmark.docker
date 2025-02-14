@@ -1,7 +1,7 @@
 const axios = require('axios');
 const sharp = require('sharp');
 const fs = require('fs');
-const tc = require('./thumbnail-common');
+const {useFallbackThumbnail, resizeToThumbnail, imageComposer, thumbnailWidth, thumbnailHeight, iconWidth, iconHeight} = require('./thumbnail-common');
 
 const faviconAPI = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=64&url=';
 let usePuppeteer = false;
@@ -24,28 +24,26 @@ const getImageFromAPI = async (fileProps) => {
         }
         if (thumbnailType == 'favicon') {
             const metadata = await sharp(originPath).metadata();
-            const originBufferWidth = (!metadata || !metadata.width) ? tc.iconWidth : metadata.width;
-            const originBufferHeight = (!metadata || !metadata.height) ? tc.iconHeight : metadata.height;
+            const originBufferWidth = (!metadata || !metadata.width) ? iconWidth : metadata.width;
+            const originBufferHeight = (!metadata || !metadata.height) ? iconHeight : metadata.height;
             fileProps.thumbnailBuffer = await sharp(originPath)
             .resize(originBufferWidth, originBufferHeight)
             .png()
             .toBuffer()
             .catch(error => console.log(`sharp error > buffer icon: ${error.message}`));
-            return await tc.imageComposer(fileProps, originBufferWidth, originBufferHeight);
+            return await imageComposer(fileProps, originBufferWidth, originBufferHeight);
         }
         else {
-            return await tc.resizeToThumbnail(fileProps);
+            return await resizeToThumbnail(fileProps);
         }
     })
     .catch(error => {
         console.log(`axios error > get remote image, ${error.message}`);
-        return tc.useFallbackThumbnail(fileProps);
+        return useFallbackThumbnail(fileProps);
     });
 };
 
 const createThumbnailFromUpload = async (fileProps) => {
-    const thumbnailWidth = tc.thumbnailWidth;
-    const thumbnailHeight = tc.thumbnailheight;
     const base64Data = fileProps.uploadBuffer.replace(/^data:image\/\w+;base64,/, '');
     const tempBuffer = await sharp(Buffer.from(base64Data, 'base64')).png().toBuffer();
     return await sharp(Buffer.from(tempBuffer))
@@ -69,17 +67,17 @@ const createThumbnailFromUpload = async (fileProps) => {
         fileProps.thumbnailBuffer = await sharp(Buffer.from(tempBuffer))
         .resize(toWidth, toHeight)
         .toBuffer();
-        return await tc.imageComposer(fileProps, toWidth, toHeight);
+        return await imageComposer(fileProps, toWidth, toHeight);
     })
     .catch(error => {
         console.log(`uplaod error > buffer from abse64, ${error.message}`);
-        return tc.useFallbackThumbnail(fileProps);
+        return useFallbackThumbnail(fileProps);
     });
 };
 
 const createThumbnail = async (fileProps) => {
-    return fileProps.thumbnailType == 'screenshot' && typeof pf.takeScreenshot === 'function' ?
-    await pf.takeScreenshot(fileProps) :
+    return fileProps.thumbnailType == 'screenshot' && typeof takeScreenshot === 'function' ?
+    await takeScreenshot(fileProps) :
     (
         fileProps.thumbnailType == 'upload' ? 
         await createThumbnailFromUpload(fileProps) : 
@@ -87,6 +85,6 @@ const createThumbnail = async (fileProps) => {
     );
 };
 
-const pf = require('./thumbnail-puppeteer-factory');
-typeof pf.takeScreenshot === 'function' && (usePuppeteer = true);
+const {takeScreenshot} = require('./thumbnail-puppeteer-factory');
+typeof takeScreenshot === 'function' && (usePuppeteer = true);
 module.exports = {createThumbnail, usePuppeteer};

@@ -4,7 +4,7 @@ const express = require('express');
 const formidable = require('express-formidable');
 const url = require('url');
 const fs = require('fs');
-const tf = require('./thumbnail-factory');
+const {createThumbnail, usePuppeteer} = require('./modules/thumbnail-factory');
 
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
@@ -15,9 +15,10 @@ const username = process.env.USER_NAME || 'admin';
 const password = process.env.PASSWORD || 'admin';
 const port = process.env.PORT || 3000;
 
-const dataFile = './data/home-tab-bookmark-data.json';
-const thumbnailDir = './data/thumbnail';
-const recycleBin = './data/.recycle';
+const dataRoot = './data';
+const dataFile = `${dataRoot}/home-tab-bookmark-data.json`;
+const thumbnailDir = `${dataRoot}/thumbnail`;
+const recycleBin = `${dataRoot}/.recycle`;
 
 const authentication = (request, response, next) => {
     if (enableBasicAuth == 'false') {
@@ -72,6 +73,7 @@ app.use(express.static('public'));
 app.use('/thumbnail',  express.static(thumbnailDir));
 
 app.get('/script.js', (request, response) => {
+    !fs.existsSync(dataRoot) && fs.mkdirSync(dataRoot);
     const filePath = './private/script.js';
     fs.readFile(filePath, 'utf8', (error, originCode) => {
         if (error) {
@@ -80,7 +82,7 @@ app.get('/script.js', (request, response) => {
         }
         let appVariables = `const appName='${appName}',version='${version}'`;
         let envVariables = '';
-        ((screenshotAPI != 'false' && screenshotAPI != 'none') || tf.usePuppeteer) && (envVariables += ',hasScreenshotAPI=true');
+        ((screenshotAPI != 'false' && screenshotAPI != 'none') || usePuppeteer) && (envVariables += ',hasScreenshotAPI=true');
         isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow);
         envVariables += `,maxBookmarkPerRow=${maxBookmarkPerRow}`;
         openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
@@ -101,7 +103,7 @@ app.post('/process', async (request, response) => {
         if (thumbnailType == 'upload' && req.upload_buffer) {
             fileProps.uploadBuffer = req.upload_buffer;
         }
-        await tf.createThumbnail(fileProps)
+        await createThumbnail(fileProps)
         .then(result => {
             if (result.status == 200 && req.thumbnail_delete) {
                 recycleOldThumbnail(req.thumbnail_delete);

@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY verdana.ttf /usr/share/fonts/
 
 # Install dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy the rest of the application code
 COPY --exclude=*.ttf . .

@@ -1,9 +1,9 @@
 // puppeteer needs more works when running in docker environment, suggest to use elestio/ws-screenshot docker for the screenshot instead
 // uncomment the following code to use puppeteer in non-docker environment
 
-// const tc = require('./thumbnail-common');
+const {resizeToThumbnail, useFallbackThumbnail} = require('./thumbnail-common');
 
-// // screenshot using puppeteer
+// screenshot using puppeteer
 // const puppeteerExtra = require('puppeteer-extra');
 // const Stealth = require('puppeteer-extra-plugin-stealth');
 // puppeteerExtra.use(Stealth());
@@ -20,18 +20,18 @@
 //         return await page.screenshot({path: originPath})
 //         .then(async () => {
 //             await browser.close();
-//             return await tc.resizeToThumbnail(fileProps);
+//             return await resizeToThumbnail(fileProps);
 //         })
 //         .catch(error => {
 //             browser.close();
 //             console.log(`puppeteer error > screenshot, ${error.message}`);
-//             return tc.useFallbackThumbnail(fileProps);
+//             return useFallbackThumbnail(fileProps);
 //         });
 //     })
 //     .catch(error => {
 //         browser.close();
 //         console.log(`puppeteer error > goto, ${error.message}`);
-//         return tc.useFallbackThumbnail(fileProps);
+//         return useFallbackThumbnail(fileProps);
 //     })
 // };
 
