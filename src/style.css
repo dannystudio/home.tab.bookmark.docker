@@ -257,11 +257,15 @@ input::placeholder {
 }
 
 .bookmark-form {
-    height: 335px;
+    height: 290px;
     overflow: hidden;
 }
 
-.bookmark-form-expand {
+.bookmark-form-small-expand {
+    height: 335px;
+}
+
+.bookmark-form-full-expand {
     height: 538px;
 }
 

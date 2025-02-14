@@ -146,12 +146,15 @@ app.post('/process', async (request, response) => {
             });
         }
     }    
-    else if (action == 'backup') {
-        fs.writeFile(dataFile, req.home_tab_data, error => {
-            error ?
-            response.status(500).send('Error, Data Writing Error.') :
-            response.set('content-type', 'text/plain').status(200).send(JSON.stringify(req.home_tab_data));
-        });       
+    else if (action == 'commit') {
+        try {
+            fs.writeFileSync(dataFile, req.home_tab_data);
+            fs.existsSync(recycleBin) && fs.rmSync(recycleBin, {recursive: true, force: true});
+            response.set('content-type', 'text/plain').status(200).send(JSON.stringify(req.home_tab_data)); 
+        }
+        catch (error) {
+            response.status(500).send('Error, Data commit error.');
+        }
     }
 });
 

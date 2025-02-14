@@ -137,7 +137,7 @@ const setDataToServer = (silent = false) => {
         homeTabData.timestamp = Date.now();
         homeTabData.version = version;
         const formData = new FormData();
-        formData.append('action', 'backup');
+        formData.append('action', 'commit');
         formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
         fetch('/process/', {
             method: 'POST',
@@ -145,10 +145,10 @@ const setDataToServer = (silent = false) => {
             body: formData
         })
         .then(resp => {
-            resp.ok && !silent && showMessagePopup('Data backup successfully.', 'info');
+            resp.ok && !silent && showMessagePopup('Chnages committed successfully.', 'info');
         })
         .catch(error => {
-            !silent && showMessagePopup('Error while backup data, please try again later.');
+            !silent && showMessagePopup('Error while commit changes, please try again later.');
         }); 
     }
     else {
@@ -273,25 +273,21 @@ const renderAppMenuContent = (hiddenGroups = []) => {
         const divider = create('div', '', 'app-menu-divider');
         container.append(divider);        
     }
-    const dataMenu = [];
     const importDataItem = create('div', '&#9900; Import Data');
     importDataItem.addEventListener('click', initImportData);
-    dataMenu.push(importDataItem);
     const exportDataItem = create('div', '&#9900; Export Data');
     exportDataItem.addEventListener('click', exportData);
-    dataMenu.push(exportDataItem);
-    const backupDataItem = create('div', '&#9900; Backup Data');
-    backupDataItem.addEventListener('click', () => {
-        setDataToServer();
-        closeAppMenu();
-    });
     const restoreDataItem = create('div', '&#9900; Restore Data');
     restoreDataItem.addEventListener('click', () => {
         getDataFromServer();
         closeAppMenu();
     });
-    dataMenu.push(backupDataItem, restoreDataItem);
-    container.append(...dataMenu);
+    const commitChangesItem = create('div', '&#9900; Commit Changes');
+    commitChangesItem.addEventListener('click', () => {
+        setDataToServer();
+        closeAppMenu();
+    });    
+    container.append(importDataItem, exportDataItem, restoreDataItem, commitChangesItem);
 };
 
 const renderGroups = () => {
@@ -658,19 +654,21 @@ const switchReloadThumbnailType = (type = '') => {
     type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
     if (type == '') {
         hide('.reload-thumbnail-custom-url', '.reload-thumbnail-custom-upload');
-        removeClass('.bookmark-form', 'bookmark-form-expand');
+        removeClass('.bookmark-form', 'bookmark-form-small-expand', 'bookmark-form-full-expand');
     }
     else if (type == 'upload') {
         hide('.reload-thumbnail-custom-url');
         show('.reload-thumbnail-custom-upload');
-        addClass('.bookmark-form', 'bookmark-form-expand');
+        addClass('.bookmark-form', 'bookmark-form-small-expand');
+        addClass('.bookmark-form', 'bookmark-form-full-expand');
         initUploadImage();
     }
     else {
         attr('.reload-thumbnail-custom-url', {placeholder: `Option: Get ${type} from this url instead`});
         hide('.reload-thumbnail-custom-upload');
         show('.reload-thumbnail-custom-url');
-        removeClass('.bookmark-form', 'bookmark-form-expand');        
+        removeClass('.bookmark-form', 'bookmark-form-full-expand');
+        addClass('.bookmark-form', 'bookmark-form-small-expand');
     }
     setValue('.bookmark-thumbnail-type', type);
 };
