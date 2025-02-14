@@ -509,8 +509,7 @@ const submitGroupForm = () => {
 const closeBookmarkForm = () => {
     bookmarkForm.reset();
     editingMemo.length = 0;
-    uploadBuffer = undefined;
-    switchReloadThumbnailType();
+    uploadBuffer = undefined;    
     enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
     removeClass('.bookmark-form', 'form-disabled', 'bookmark-form-expand');
     hide('.popup-mask', '.bookmark-form', '.edit-bookmark-icon-container');
@@ -641,6 +640,7 @@ const editBookmark = (bookmark, bookmarkIndex) => {
     ]);
     show('.edit-bookmark-icon-container');
     editingMemo.push(bookmarkIndex, bookmarkLabel, bookmarkUrl, bookmarkThumbnail);
+    switchReloadThumbnailType();
     showBookmarkForm();
     return false;
 };
@@ -654,21 +654,23 @@ const addBookmark = () => {
 const switchReloadThumbnailType = (type = '') => {
     uploadBuffer = undefined;
     const curretnType = getValue('.bookmark-thumbnail-type');
-    if (curretnType != type) {
-        curretnType != '' && removeClass(`.reload-thumbnail-option-${curretnType}`, 'reload-thumbnail-type-selected');
-        type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
-    }
-    if (type != 'upload') {
-        attr('.reload-thumbnail-custom-url', {placeholder: `Get ${type} from this url`});
-        hide('.reload-thumbnail-custom-upload');
-        show('.reload-thumbnail-custom-url');
+    ['favicon', 'screenshot', 'upload'].forEach(elem => removeClass(`.reload-thumbnail-option-${elem}`, 'reload-thumbnail-type-selected'));
+    type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
+    if (type == '') {
+        hide('.reload-thumbnail-custom-url', '.reload-thumbnail-custom-upload');
         removeClass('.bookmark-form', 'bookmark-form-expand');
     }
-    else {
+    else if (type == 'upload') {
         hide('.reload-thumbnail-custom-url');
         show('.reload-thumbnail-custom-upload');
         addClass('.bookmark-form', 'bookmark-form-expand');
         initUploadImage();
+    }
+    else {
+        attr('.reload-thumbnail-custom-url', {placeholder: `Option: Get ${type} from this url instead`});
+        hide('.reload-thumbnail-custom-upload');
+        show('.reload-thumbnail-custom-url');
+        removeClass('.bookmark-form', 'bookmark-form-expand');        
     }
     setValue('.bookmark-thumbnail-type', type);
 };
@@ -747,7 +749,8 @@ const submitBookmarkForm = () => {
     const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
-            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'object') {
+            console.log(typeof uploadBuffer)
+            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'string') {
                 showMessagePopup('Please select a file to upload.');
                 return false;
             }
