@@ -44,7 +44,7 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 
 ## Install
 * Clone this repository.
-* Run *npm run dockersave* in terminal.
+* Run `npm run dockersave` in terminal.
 * Use image *home-tab-bookmark.tar* to create container.
 * Install browser extension [New Tab Redirect](https://chromewebstore.google.com/detail/new-tab-redirect/icpgjfneehieebagbmdbhnlpiopdcmna?hl=en-US) and set new tab redirect to http://HOSTNAME:3000.
 
@@ -52,12 +52,10 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 ### SCREENSHOT_API ###
 Specific the screenshot api gives the option to use website screenshot as bookmark thumbnail. The screenshot api should be full api url without bookmark's url and it should return a png or jpeg image.
 
-Here is an example of screenshot api from [elestio/ws-screenshot.slim](https://hub.docker.com/r/elestio/ws-screenshot.slim) docker
-
+Here is an example of screenshot api from [elestio/ws-screenshot.slim](https://hub.docker.com/r/elestio/ws-screenshot.slim) docker  
 http://[IP_ADDRESS]]:[PORT]/api/screenshot?resX=1024&resY=768&waitTime=2000&outFormat=png&url=
 
-Here is another example of screehshot api from [thum.io](https://www.thum.io)
-
+Here is another example of screehshot api from [thum.io](https://www.thum.io)  
 https://image.thum.io/get/width/256/crop/900/
 
 ### OPEN_IN_NEW_TAB ###
