@@ -52,11 +52,10 @@ const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, book
     const urlParts = parseUrlParts(bookmarkUrl);
     const prefix = urlParts.hostname;
     !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
-    const originName = `${prefix}-${Date.now()}_origin.png`;
-    const originPath = `${thumbnailDir}/${originName}`;
+    const originUrl = prefix;
     const destName = `${prefix}-${Date.now()}.png`;
     const destPath = `${thumbnailDir}/${destName}`;
-    return {thumbnailType, thumbnailUrl, originName, originPath, destName, destPath, screenshotAPI};
+    return {originUrl, thumbnailType, thumbnailUrl, destName, destPath, screenshotAPI};
 };
 
 const recycleOldThumbnail = (filename) => {

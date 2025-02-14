@@ -509,6 +509,7 @@ const submitGroupForm = () => {
 const closeBookmarkForm = () => {
     bookmarkForm.reset();
     editingMemo.length = 0;
+    uploadBuffer = undefined;
     switchReloadThumbnailType();
     enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
     removeClass('.bookmark-form', 'form-disabled', 'bookmark-form-expand');
@@ -574,9 +575,7 @@ const moveBookmark = event => {
                 homeTabData.groups[groupIndex].bookmarks.push({
                     label: sourceBookmark.label,
                     url: sourceBookmark.url,
-                    thumbnail: sourceBookmark.thumbnail,
-                    thumbnail_type: sourceBookmark.thumbnail_type,
-                    thumbnail_custom_url: sourceBookmark.thumbnail_custom_url
+                    thumbnail: sourceBookmark.thumbnail
                 });
                 newBookmarks = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => index != sourceIndex);
             }
@@ -633,15 +632,12 @@ const editBookmark = (bookmark, bookmarkIndex) => {
     const bookmarkLabel = bookmark.label;
     const bookmarkUrl = bookmark.url;
     const bookmarkThumbnail = bookmark.thumbnail;
-    const bookmarkThumbnailType = bookmark.thumbnail_type || 'favicon';
-    const bookmarkThumbnailCUrl = bookmark.thumbnail_custom_url || '';
-    switchReloadThumbnailType(bookmarkThumbnailType);
     setFormValues(bookmarkForm, [
         bookmarkIndex,
         bookmarkUrl,
         bookmarkLabel,
-        bookmarkThumbnailType,
-        bookmarkThumbnailCUrl
+        '',
+        ''
     ]);
     show('.edit-bookmark-icon-container');
     editingMemo.push(bookmarkIndex, bookmarkLabel, bookmarkUrl, bookmarkThumbnail);
@@ -656,6 +652,7 @@ const addBookmark = () => {
 };
 
 const switchReloadThumbnailType = (type = '') => {
+    uploadBuffer = undefined;
     const curretnType = getValue('.bookmark-thumbnail-type');
     if (curretnType != type) {
         curretnType != '' && removeClass(`.reload-thumbnail-option-${curretnType}`, 'reload-thumbnail-type-selected');
@@ -750,7 +747,7 @@ const submitBookmarkForm = () => {
     const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
-            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer == 'undefined') {
+            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'object') {
                 showMessagePopup('Please select a file to upload.');
                 return false;
             }
@@ -758,11 +755,7 @@ const submitBookmarkForm = () => {
             let shouldReloadThumbnail = true;
             if (submitType == 'Edit') {
                 const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
-                if (targetDataBlock.url == bookmarkUrl 
-                    && targetDataBlock.thumbnail_type == bookmarkThumbnailType 
-                    && targetDataBlock.thumbnail_custom_url == bookmarkThumbnailCUrl
-                    && typeof uploadBuffer == 'undefined'
-                ) {
+                if (targetDataBlock.url == bookmarkUrl && bookmarkThumbnailType == '') {
                     shouldReloadThumbnail = false;
                 }
             }
@@ -775,8 +768,6 @@ const submitBookmarkForm = () => {
                 else newIndex = bookmarkIndex;
                 bookmarks[newIndex].label = bookmarkLabel;
                 bookmarks[newIndex].url = bookmarkUrl;
-                bookmarks[newIndex].thumbnail_type = bookmarkThumbnailType;
-                bookmarks[newIndex].thumbnail_custom_url = bookmarkThumbnailCUrl;
                 if (filename) {
                     bookmarks[newIndex].thumbnail = filename;
                 }
