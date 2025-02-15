@@ -377,12 +377,13 @@ input::placeholder {
     width: 300px;
 }
 
-.function-icon {
+.delete-icon {
     display: flex;
     width: 30px;
     height: 30px;
     border: 0px;
-    background: transparent;    
+    background: transparent;
+    color: rgb(255, 118, 118);   
     white-space: nowrap;
     align-items: center;
     filter: grayscale(0);
@@ -391,19 +392,15 @@ input::placeholder {
     cursor: pointer;    
 }
 
-.function-icon span {
+.delete-icon span {
     position: relative;
     top: 3px;
     left: 5px;
     font-size: 16px;
 }
 
-.delete-group-icon:hover:enabled, .delete-bookmark-icon:hover:enabled {
+.delete-icon:hover:enabled {
     width: 160px;
-}
-
-.delete-group-icon, .delete-bookmark-icon {
-    color: rgb(255, 118, 118);
 }
 
 .import-drop-area-container, .upload-drop-area-container {

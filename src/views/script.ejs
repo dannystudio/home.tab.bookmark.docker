@@ -234,6 +234,7 @@ const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type
     if (type == 'confirm') {
         addClass('.message-container', 'message-default-cursor');
         show('.message-confirm-button-container');
+        qs('.message-container').removeEventListener('click', closeMessagePopup);
         if (confirmCallback) {
             confirmCallback.confirmed && qs('.message-confirm').addEventListener('click', confirmCallback.confirmed);
             confirmCallback.cancelled && qs('.message-cancel').addEventListener('click', confirmCallback.cancelled);
@@ -243,6 +244,7 @@ const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type
         show('.message-progress-bar', 'block');
         addClass('.message-progress-bar', `message-${type}-progress-bar`);
         addClass('.message-progress-bar-fill', `message-${type}-theme`);
+        qs('.message-container').addEventListener('click', closeMessagePopup);
         setTimeout(() => {
             addClass('.message-progress-bar-fill', 'message-progress-bar-fill-run');
         }, 50);
@@ -373,7 +375,6 @@ const closeGroupForm = () => {
     editingMemo.length = 0;
     hide('.popup-mask', '.group-form', '.edit-group-icon-container');
     removeClass('.group-form', 'form-container-show');
-    return false;
 };
 
 const showGroupForm = () => {
@@ -502,9 +503,7 @@ const submitGroupForm = () => {
     }
     else {
         showMessagePopup('Group Name cannot be empty.');
-        
     }
-    return false;
 };
 
 const closeBookmarkForm = () => {
@@ -515,7 +514,6 @@ const closeBookmarkForm = () => {
     removeClass('.bookmark-form', 'form-disabled', 'bookmark-form-expand');
     hide('.popup-mask', '.bookmark-form', '.edit-bookmark-icon-container');
     removeClass('.bookmark-form', 'form-container-show');
-    return false;
 };
 
 const showBookmarkForm = () => {
@@ -654,8 +652,12 @@ const addBookmark = () => {
 
 const switchReloadThumbnailType = (type = '') => {
     uploadBuffer = undefined;
-    ['favicon', 'screenshot', 'upload'].forEach(elem => removeClass(`.reload-thumbnail-option-${elem}`, 'reload-thumbnail-type-selected'));
-    type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
+    const buttons = qs('.reload-thumbnail-options button', true);
+    buttons.forEach(elem => {
+        elem.innerText.toLowerCase() == type ?
+        addClass(elem, 'reload-thumbnail-type-selected') :
+        removeClass(elem, 'reload-thumbnail-type-selected');
+    });
     if (type == '') {
         hide('.reload-thumbnail-custom-url', '.reload-thumbnail-custom-upload');
         removeClass('.bookmark-form', 'bookmark-form-small-expand', 'bookmark-form-full-expand');
@@ -816,7 +818,6 @@ const submitBookmarkForm = () => {
     else {
         showMessagePopup('URL and Label cannot be empty.');
     }
-    return false;
 };
 
 const cancelDeleteItem = () => {
@@ -1001,11 +1002,13 @@ const handleKeyPressed = event => {
         if (qs('.message-mask').style.display != 'none') {
             closeMessagePopup();
         }
-        else if (qs('.popup-mask').style.display != 'none') {
-            closeGroupForm();
-            closeBookmarkForm();
-            closeImportContainer();
-        }
+        else {
+            if (qs('.popup-mask').style.display != 'none') {
+                closeGroupForm();
+                closeBookmarkForm();
+                closeImportContainer();
+            }
+        } 
         closeAppMenu();
     }
     event.key == 'Shift' && (forceOpenInNewTab = true);
@@ -1015,25 +1018,69 @@ const handleKeyReleased = event => {
     event.key == 'Shift' && (forceOpenInNewTab = false); 
 };
 
-const doneInit = () => {
-    renderGroups();
-    goToGroup(homeTabData.current_group);
-    if (qs('#bookmark0') && !bookmarkSpace) {
-        const bookmarkSpec = getComputedStyle(qs('#bookmark0'));
-        const bookmarkWidth = parseInt(bookmarkSpec.width);
-        const bookmarkMargin = parseInt(bookmarkSpec.margin);
-        const bookmarkBorder = parseInt(bookmarkSpec.border);
-        bookmarkSpace = bookmarkWidth + ((bookmarkMargin + bookmarkBorder) * 2);
-    }    
-    document.addEventListener("dragover", event => event.preventDefault());
-    document.addEventListener("scroll", closeAppMenu);
+const renderHTMLElements = () => {
+    const buttonContainer = qs('.reload-thumbnail-options');
+    ['favicon', 'screenshot', 'upload'].forEach(btn => {
+        const button = create('button', `${btn.charAt(0).toUpperCase()}${btn.slice(1)}`);
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            switchReloadThumbnailType(btn);
+        });
+        buttonContainer.append(button);
+    });
+};
+
+const registEvents = () => {
+    // regist document events
+    ['contextmenu', 'dragover', 'dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => document.addEventListener(evt, event => event.preventDefault()));
     document.addEventListener('keydown', handleKeyPressed);
-    document.addEventListener('keyup', handleKeyReleased);
-    document.addEventListener("visibilitychange", () => {forceOpenInNewTab = false});
+    document.addEventListener('scroll', closeAppMenu);
+    document.addEventListener('visibilitychange', () => {forceOpenInNewTab = false});
+    // regist html elemet event
+    groupForm.addEventListener('submit', event => {
+        event.preventDefault();
+        submitGroupForm();
+    });
+    bookmarkForm.addEventListener('submit', event => {
+        event.preventDefault();
+        submitBookmarkForm();
+    });
+    qs('.app-menu-icon').addEventListener('click', toggleAppMenu);
+    qs('.delete-icon', true).forEach(icon => icon.addEventListener('click', deleteItem));
+    qs('.close-group-form').addEventListener('click', event => {
+        event.preventDefault();
+        closeGroupForm();
+    });
+    qs('.close-bookmark-form').addEventListener('click', event => {
+        event.preventDefault();
+        closeBookmarkForm();
+    });
+    qs('.import-close-button').addEventListener('click', closeImportContainer);
+    qs('.import-file-input').addEventListener('change', event => importData(event.target.files));
+    qs('.upload-file-input').addEventListener('change', event => previewImage(event.target.files));
+    // regist window event   
     window.addEventListener('resize', () => {
         setGruopVisibility();
         setBookmarkContainer();
     });
+};
+
+const setBookmarkSpace = () => {
+    const bookmarkObj = qs('.bookmark-item', true).length > 1 ? qs('#bookmark0') : qs('.add-new-bookmark');
+    const bookmarkSpec = getComputedStyle(bookmarkObj);
+    const bookmarkWidth = parseInt(bookmarkSpec.width);
+    const bookmarkMargin = parseInt(bookmarkSpec.margin);
+    const bookmarkBorder = parseInt(bookmarkSpec.border);
+    bookmarkSpace = bookmarkWidth + ((bookmarkMargin + bookmarkBorder) * 2);
+};
+
+const doneInit = () => {
+    renderGroups();
+    goToGroup(homeTabData.current_group);
+    setBookmarkSpace();
+    [groupForm, bookmarkForm, importForm] = document.forms;
+    registEvents();
+    renderHTMLElements();
     html('.footer', `${appName} v${version}`);
     setGruopVisibility();
     setBookmarkContainer();
@@ -1042,7 +1089,6 @@ const doneInit = () => {
 const init = () => {
     if (localStorage) {
         renderAppMenuContent();
-        [groupForm, bookmarkForm, importForm] = document.forms;
         !localStorage.getItem('home-tab-data') ? getDataFromServer(true) : getDataFromLocal(true);
     }
     else {
@@ -1050,4 +1096,4 @@ const init = () => {
     }
 };
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener('DOMContentLoaded', init);

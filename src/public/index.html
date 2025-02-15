@@ -7,7 +7,7 @@
 <link type="text/css" rel="stylesheet" href='/style.css' />
 <script type="text/javascript" src="/script.js"></script>
 </head>
-<body oncontextmenu="return false;">
+<body>
 <div class="group-container"></div>
 <div class="bookmark-container-outer">
     <div class="bookmark-container"></div>
@@ -15,8 +15,8 @@
 <div class="popup-mask">
     <div class="form-container group-form">
         <div class="group-form-header"></div>
-        <button class="form-close-button close-group-form" onClick="return closeGroupForm();">&#10006;</button>
-        <form name="groupForm" onSubmit="return submitGroupForm();">
+        <button class="form-close-button close-group-form">&#10006;</button>
+        <form name="groupForm">
             <input type="hidden" class="group-form-index" value="0">
             <div class="field-label">Group Name</div>
             <input type="text" value="" maxlength="30" class="text-field">
@@ -25,13 +25,13 @@
             </div>
         </form>
         <div class="edit-group-icon-container">
-            <button class="function-icon delete-group-icon" onClick="deleteItem()"><img src="image/delete.png"><span>Delete Group</span></button>
+            <button class="delete-icon delete-group-icon"><img src="image/delete.png"><span>Delete Group</span></button>
         </div>
     </div>
     <div class="form-container bookmark-form">
         <div class="bookmark-form-header"></div>
-        <button class="form-close-button close-bookmark-form" onClick="return closeBookmarkForm();">&#10006;</button>
-        <form name="bookmarkForm" onSubmit="return submitBookmarkForm();">
+        <button class="form-close-button close-bookmark-form">&#10006;</button>
+        <form name="bookmarkForm">
             <input type="hidden" class="bookmark-form-index" value="">
             <div class="field-label">URL</div>
             <input type="text" value="" maxlength="200" class="text-field">            
@@ -40,9 +40,6 @@
             <div class="field-label">Thumbnail</div>
             <input type="hidden" value="" class="bookmark-thumbnail-type">
             <div class="reload-thumbnail-options">
-                <button class="reload-thumbnail-option-favicon" onClick="switchReloadThumbnailType('favicon'); return false;">Icon</button>
-                <button class="reload-thumbnail-option-screenshot" onClick="switchReloadThumbnailType('screenshot'); return false;">Screenshot</button>
-                <button class="reload-thumbnail-option-upload" onClick="switchReloadThumbnailType('upload'); return false;">Upload</button>
             </div>
             <input type="text" value="" maxlength="200" class="text-field reload-thumbnail-custom-url">
             <div class="reload-thumbnail-custom-upload">
@@ -59,13 +56,13 @@
             </div>
         </form>
         <div class="edit-bookmark-icon-container">
-            <button class="function-icon delete-bookmark-icon" onClick="deleteItem()"><img src="image/delete.png"><span>Delete Bookmark</span></button>
+            <button class="delete-icon delete-bookmark-icon"><img src="image/delete.png"><span>Delete Bookmark</span></button>
         </div>       
     </div>
     <div class="import-drop-area-container" listen-to-event="false">
         <div class="import-drop-area-content">
             <div class="import-close-button-container">
-                <div class="form-close-button import-close-button" onClick="closeImportContainer()" >&#10006;</div>
+                <div class="form-close-button import-close-button">&#10006;</div>
             </div>
             <div>Please drop a file here</div>
             <div>OR</div>
@@ -74,24 +71,24 @@
     </div>    
 </div>
 <form name="importForm">
-    <input type="file" id="importField" accept="application/json" onchange="importData(this.files)" class="import-file-input">
+    <input type="file" id="importField" accept="application/json" class="import-file-input">
 </form>
 <form name="uploadForm">
-    <input type="file" id="uploadField" accept="image/png, image/jpeg" onchange="previewImage(this.files)" class="upload-file-input">
+    <input type="file" id="uploadField" accept="image/png, image/jpeg" class="upload-file-input">
 </form>
 <div class="message-mask">
-    <div class="message-container" onClick="closeMessagePopup();">
+    <div class="message-container">
         <div class="message-body"></div>
         <div class="message-progress-bar">
             <div class="message-progress-bar-fill"></div>
         </div>
         <div class="message-confirm-button-container">
             <div class="message-confirm-button message-confirm">&#10004;</div>
-            <div class="message-confirm-button message-cancel" onClick="closeMessagePopup()">&#10006;</div>
+            <div class="message-confirm-button message-cancel">&#10006;</div>
         </div>    
     </div>   
 </div>
-<div class="app-menu-icon" onClick="toggleAppMenu()">&#8942;</div>
+<div class="app-menu-icon">&#8942;</div>
 <div class="app-menu-container">
     <div class="app-menu-content" displayed="false"></div>
 </div>
