@@ -1,4 +1,3 @@
 /node_modules
-/public
-/private
-/data
+/src/data
+/dist

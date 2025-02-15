@@ -51,7 +51,7 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 
 ## ENV Variables
 ### SCREENSHOT_API ###
-Specify the screenshot api gives the option to use different screenshot api to get the screenshot for bookmark thumbnail. The screenshot api should be full api url without bookmark's url and it should return a png or jpeg image.
+Specify the screenshot api gives option to use different screenshot api to get the screenshot for bookmark thumbnail. The screenshot api should be full api url without bookmark's url and it should return a png or jpeg image.
 
 Here is an example of screenshot api from [elestio/ws-screenshot.slim](https://hub.docker.com/r/elestio/ws-screenshot.slim) docker  
 `http://[IP_ADDRESS]]:[PORT]/api/screenshot?resX=1024&resY=768&waitTime=2000&outFormat=png&url=`
@@ -75,5 +75,5 @@ The default username for basic authentication is 'admin', use this variable to s
 The default password for basic authentication is 'admin', use this variable to set your password for basic authentication.
 
 ## Volume Setting
-### /data ###
+### /app/data ###
 This is where the data and thumbnail are stored, map this volume with read/write permission if needed.

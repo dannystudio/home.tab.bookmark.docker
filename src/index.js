@@ -3,6 +3,7 @@ const version = '1.0.0';
 const express = require('express');
 const formidable = require('express-formidable');
 const url = require('url');
+const path = require('path');
 const fs = require('fs');
 const {createThumbnail} = require('./modules/thumbnail-factory');
 
@@ -15,7 +16,7 @@ const username = process.env.USER_NAME || 'admin';
 const password = process.env.PASSWORD || 'admin';
 const port = process.env.PORT || 3000;
 
-const dataRoot = './data';
+const dataRoot = path.join(__dirname, '/data');
 const dataFile = `${dataRoot}/home-tab-bookmark-data.json`;
 const thumbnailDir = `${dataRoot}/thumbnail`;
 const recycleBin = `${dataRoot}/.recycle`;
@@ -68,12 +69,12 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(formidable());
 app.use(authentication);
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '/public')));
 app.use('/thumbnail',  express.static(thumbnailDir));
 
 app.get('/script.js', (request, response) => {
     !fs.existsSync(dataRoot) && fs.mkdirSync(dataRoot);
-    const filePath = './private/script.js';
+    const filePath = path.join(__dirname, '/script.js');
     fs.readFile(filePath, 'utf8', (error, originCode) => {
         if (error) {
             console.error(error.message);

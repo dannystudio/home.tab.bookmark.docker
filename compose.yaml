@@ -6,4 +6,4 @@ services:
       - "8080:3000" # map any available port to use (replace 8080)
     restart: always
     volumes:
-      - ./home-tab-bookmark-data:/data:rw
+      - ./home-tab-bookmark-data:/app/data:rw

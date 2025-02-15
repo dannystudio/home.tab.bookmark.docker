@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare": "rm -rf ./public && mkdirp ./public && rm -rf ./private && mkdirp ./private",
-    "devbuild": "npm run --silent prepare && cp -R ./src/* ./public/ && rm ./public/script.js && cp ./src/script.js ./private/",
-    "devtest": "npm run --silent devbuild && nodemon index.js",
-    "build": "npm run --silent prepare && cp -R ./src/* ./public && rm ./public/script.js && uglifycss ./src/style.css --output ./public/style.css && uglifyjs ./src/script.js --compress --mangle --warn --output ./private/script.js",
-    "buildtest": "npm run --silent build && node index.js",
+    "prepare": "rm -rf ./dist && mkdirp ./dist/public ./dist/modules",
+    "devtest": "nodemon ./src/index.js",
+    "build": "npm run --silent prepare && cp -R ./src/public/* ./dist/public && html-minifier --input-dir ./src/public --output-dir ./dist/public --collapse-whitespace --file-ext html && uglifycss ./src/public/style.css --output ./dist/public/style.css && uglifyjs ./src/script.js --compress --mangle --warn --output ./dist/script.js && uglifyjs ./src/modules/thumbnail-factory.js --compress --mangle --warn --output ./dist/modules/thumbnail-factory.js && uglifyjs ./src/index.js --compress --mangle --warn --output ./dist/index.js",
+    "buildtest": "npm run --silent build && node ./dist/index.js",
     "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run --silent build && docker build -t dannystudio/home-tab-bookmark .",
     "dockertest": "docker run -p 3000:3000 dannystudio/home-tab-bookmark",
     "dockersave": "npm run dockerbuild && echo build completed, now save to tar... &&docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
@@ -26,6 +25,7 @@
     "uglifycss": "^0.0.29"
   },
   "devDependencies": {
+    "html-minifier": "^4.0.0",
     "nodemon": "^3.1.9"
   }
 }
