@@ -65,6 +65,7 @@ const recycleOldThumbnail = (filename) => {
 };
 
 const app = express();
+app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(formidable());
@@ -73,21 +74,13 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.use('/thumbnail',  express.static(thumbnailDir));
 
 app.get('/script.js', (request, response) => {
-    !fs.existsSync(dataRoot) && fs.mkdirSync(dataRoot);
-    const filePath = path.join(__dirname, '/script.js');
-    fs.readFile(filePath, 'utf8', (error, originCode) => {
-        if (error) {
-            console.error(error.message);
-            return response.status(500).send('Error reading file.');
-        }
-        let appVariables = `const appName='${appName}',version='${version}'`;
-        let envVariables = '';
-        isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow);
-        envVariables += `,maxBookmarkPerRow=${maxBookmarkPerRow}`;
-        openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
-        const appendedCode = `${appVariables}${envVariables};${originCode}`;
-        response.set('Content-Type', 'text/javascript').send(appendedCode);
-    });
+    const vars = {
+        appName: appName,
+        version: version,
+        maxBookmarkPerRow: isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow),
+        openInNewTab: openInNewTab == 'true' ? 1 : 0
+    };
+    response.render(path.join(__dirname, '/views/script'), vars);
 });
 
 app.post('/process', async (request, response) => {

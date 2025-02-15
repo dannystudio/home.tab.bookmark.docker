@@ -1,3 +1,9 @@
+// ejs variables
+const appName='<%=appName%>';
+const version='<%=version%>';
+const maxBookmarkPerRow = parseInt('<%=maxBookmarkPerRow%>');
+const openInNewTab = Boolean(parseInt('<%=openInNewTab%>'));
+// end of ejs
 let homeTabData = {};
 let groupForm, bookmarkForm, importForm;
 let messageTimer;
