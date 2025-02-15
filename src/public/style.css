@@ -346,12 +346,18 @@ input::placeholder {
 .bookmark-thumbnail {
     height: 100%;
     clip-path: rect(0px 256px 160px 0px);
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
 }
 
 .bookmark-label {
     position: relative;
+    display: inline-block;
     top: -24px;
+    width: 256px;
     white-space: nowrap;
+    text-align: center;
     text-overflow: ellipsis;
     overflow: hidden;
 }

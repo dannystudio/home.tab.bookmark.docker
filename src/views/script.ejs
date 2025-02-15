@@ -108,6 +108,10 @@ const verifyData = data => {
     return true;
 };
 
+const isSpeedDialsData = data => {
+    return data.hasOwnProperty('dials') && data.hasOwnProperty('groups');
+};
+
 const getDataFromServer = isInit => {
     const formData = new FormData();
     formData.append('action', 'restore');
@@ -351,8 +355,9 @@ const renderBookmarks = data => {
             editBookmark(bookmark, bookmarkIndex);
         });
         const bookmarkThumb = create('div', '', 'bookmark-thumbnail');
-        bookmarkThumb.style.background = `url(/thumbnail/${bookmark.thumbnail})`;
-        const bookmarkLabel = create('div', bookmark.label, 'bookmark-label center');
+        const thumbnailSource = bookmark.thumbnail.match(/^(http|https):\/\//i) == null ? `/thumbnail/${bookmark.thumbnail}` : bookmark.thumbnail;
+        bookmarkThumb.style.background = `url(${thumbnailSource})`;
+        const bookmarkLabel = create('div', bookmark.label, 'bookmark-label');
         bookmarkItem.append(bookmarkThumb, bookmarkLabel);
         container.append(bookmarkItem);
     });
@@ -753,7 +758,6 @@ const submitBookmarkForm = () => {
     const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
         if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
-            console.log(typeof uploadBuffer)
             if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'string') {
                 showMessagePopup('Please select a file to upload.');
                 return false;
@@ -893,6 +897,40 @@ const closeImportContainer = () => {
     hide('.popup-mask', '.import-drop-area-container');
 };
 
+const convertSpeedDialsData = (data) => {
+    const htbData = {
+        current_group: 0,
+        groups: []
+    };
+    const groupMap = [];
+    data.groups.forEach(group => {
+        const htbGroups = htbData.groups;
+        groupMap.push(group.id);
+        htbGroups.push({
+            name: group.title,
+            bookmarks: []
+        });
+    });
+    data.dials.forEach(dial => {
+        let groupIndex = 0;
+        for (let i = 0; i < groupMap.length; i++) {
+            if (groupMap[i] == dial.idgroup) groupIndex = i;
+        }
+        const bookmarks = htbData.groups[groupIndex].bookmarks;
+        bookmarks.length = Math.max(bookmarks.length, dial.position + 1);
+        bookmarks[dial.position] = {
+            label: dial.title,
+            url: dial.url,
+            thumbnail: dial.thumbnail
+        };
+    });
+    htbData.groups.forEach(group => {
+        const cleanBookmarks = group.bookmarks.filter(bookmark => bookmark.label != '' && bookmark.url != '');
+        group.bookmarks = cleanBookmarks;
+    });
+    return htbData;
+};
+
 const importData = files => {
     const uploadFile = files[0];    // only handle the first file
     if (uploadFile.type != 'application/json') {
@@ -905,8 +943,10 @@ const importData = files => {
             try {
                 const fileContent = event.target.result;
                 const newData = JSON.parse(fileContent);
-                if (verifyData(newData.home_tab_data)) {
-                    homeTabData = newData.home_tab_data;
+                const isSpeedDials = isSpeedDialsData(newData);
+                if (isSpeedDials || verifyData(newData.home_tab_data)) {
+                    console.log('i am in')
+                    homeTabData = isSpeedDials ? convertSpeedDialsData(newData) : newData.home_tab_data;
                     setDataToLocal(true);
                     renderGroups();
                     goToGroup(homeTabData.current_group);
@@ -1033,7 +1073,6 @@ const renderHTMLElements = () => {
     ['bookmark', 'group'].forEach(item => {
         const deleteIcon = create('img', '', '', {src: `data:image/png;base64, ${base64ImageData.delete}`});
         const label = create('span', `Delete ${item.charAt(0).toUpperCase()}${item.slice(1)}`);
-        console.log(qs(`.delete-${item}-icon`))
         qs(`.delete-${item}-icon`).append(deleteIcon, label);
     });
 };
