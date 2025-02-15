@@ -4,7 +4,7 @@ const express = require('express');
 const formidable = require('express-formidable');
 const url = require('url');
 const fs = require('fs');
-const {createThumbnail, usePuppeteer} = require('./modules/thumbnail-factory');
+const {createThumbnail} = require('./modules/thumbnail-factory');
 
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
@@ -48,7 +48,7 @@ const parseUrlParts = address => {
     return url.parse(address, true);
 };
 
-const getThumbnailProperties = (thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl) => {
+const getThumbnailProperties = (bookmarkUrl, thumbnailType, thumbnailUrl) => {
     const urlParts = parseUrlParts(bookmarkUrl);
     const prefix = urlParts.hostname;
     !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
@@ -81,7 +81,6 @@ app.get('/script.js', (request, response) => {
         }
         let appVariables = `const appName='${appName}',version='${version}'`;
         let envVariables = '';
-        ((screenshotAPI != 'false' && screenshotAPI != 'none') || usePuppeteer) && (envVariables += ',hasScreenshotAPI=true');
         isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow);
         envVariables += `,maxBookmarkPerRow=${maxBookmarkPerRow}`;
         openInNewTab != 'false' && (envVariables += ',openInNewTab=true');
@@ -98,7 +97,7 @@ app.post('/process', async (request, response) => {
         const bookmarkUrl = req.url;
         const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'favicon';
         const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
-        const fileProps = getThumbnailProperties(thumbnailUrl, thumbnailType, screenshotAPI, bookmarkUrl);
+        const fileProps = getThumbnailProperties(bookmarkUrl, thumbnailType, thumbnailUrl);
         if (thumbnailType == 'upload' && req.upload_buffer) {
             fileProps.uploadBuffer = req.upload_buffer;
         }

@@ -91,7 +91,7 @@ const getFormValues = form => {
     return values;
 };
 
-const verifyData = (data) => {
+const verifyData = data => {
     if (typeof data.current_group === 'undefined' ||
         typeof data.groups === 'undefined' ||
         data.groups.length == 0 ||
@@ -102,7 +102,7 @@ const verifyData = (data) => {
     return true;
 };
 
-const getDataFromServer = (isInit) => {
+const getDataFromServer = isInit => {
     const formData = new FormData();
     formData.append('action', 'restore');
     fetch('/process/', {
@@ -484,7 +484,6 @@ const submitGroupForm = () => {
                 homeTabData.groups[groupIndex].name = groupName;
             }
             if (setDataToLocal()) {
-                setDataToServer(true);
                 renderGroups();
                 goToGroup(groupIndex);
                 setGruopVisibility();
@@ -649,7 +648,6 @@ const addBookmark = () => {
 
 const switchReloadThumbnailType = (type = '') => {
     uploadBuffer = undefined;
-    const curretnType = getValue('.bookmark-thumbnail-type');
     ['favicon', 'screenshot', 'upload'].forEach(elem => removeClass(`.reload-thumbnail-option-${elem}`, 'reload-thumbnail-type-selected'));
     type != '' && addClass(`.reload-thumbnail-option-${type}`, 'reload-thumbnail-type-selected');
     if (type == '') {
@@ -762,6 +760,7 @@ const submitBookmarkForm = () => {
             }
             const updateBookmark = (filename) => {
                 const bookmarks = homeTabData.groups[currentGroup].bookmarks;
+                let newIndex;
                 if (bookmarkIndex == -1) {
                     newIndex = bookmarks.length;
                     bookmarks[newIndex] = {};
@@ -773,7 +772,6 @@ const submitBookmarkForm = () => {
                     bookmarks[newIndex].thumbnail = filename;
                 }
                 if (setDataToLocal()) {
-                    setDataToServer(true);
                     goToGroup(currentGroup); 
                     closeBookmarkForm();
                 }
@@ -888,7 +886,7 @@ const closeImportContainer = () => {
     hide('.popup-mask', '.import-drop-area-container');
 };
 
-const importData = (files) => {
+const importData = files => {
     const uploadFile = files[0];    // only handle the first file
     if (uploadFile.type != 'application/json') {
         showMessagePopup('Invalid file format.');
@@ -971,7 +969,7 @@ const exportData = () => {
         href: dataString,
         download: 'home-tab-bookmark-data.json'
     });
-    exportDataAnchor.click();   
+    exportDataAnchor.click();  
 };
 
 const closeAppMenu = () => {
@@ -1030,9 +1028,6 @@ const doneInit = () => {
         setGruopVisibility();
         setBookmarkContainer();
     });
-    typeof hasScreenshotAPI !== 'undefined' && hasScreenshotAPI ?
-    show('.reload-thumbnail-option-screenshot', 'block') : 
-    show('.reload-thumbnail-option-noscreenshot', 'block');
     html('.footer', `${appName} v${version}`);
     setGruopVisibility();
     setBookmarkContainer();

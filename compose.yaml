@@ -1,19 +1,9 @@
 version: "3.8"
 services:
-  ws-screenshot:
-    image: elestio/ws-screenshot.slim
-    ports:
-      - "1111:3000" # map any available port to use (replace 1111)
-    restart: always
   web-app:
     image: dannystudio/home-tab-bookmark
     ports:
-      - "5432:3000" # map any available port to use (replace 5432)
+      - "8080:3000" # map any available port to use (replace 8080)
     restart: always
-    environment:
-      # replace [IP_ADDRESS] with the IP address of the machine docker deployed, replace [PORT] with the port from ws-screenshot
-      - SCREENSHOT_API=http://[IP_ADDRESS]:[PORT]/api/screenshot?resX=1024&resY=768&waitTime=2000&outFormat=png&url=
     volumes:
       - ./home-tab-bookmark-data:/data:rw
-    depends_on:
-      - ws-screenshot
