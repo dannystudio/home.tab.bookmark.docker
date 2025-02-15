@@ -93,12 +93,7 @@ const resizeImage = async fileProps => {
 const useFallbackThumbnail = async fileProps => {
     const originUrl = fileProps.originUrl;
     const label =  originUrl.match(/^(www)\./i) != null ? originUrl.substring(4, 5) : originUrl.substring(0 ,1);
-    const svg = `
-        <svg width="${iconWidth}" height="${iconHeight}">
-            <rect x="0" y="0" width="100%" height="100%" fill="#${getRandomColor()}" rx="5" ry="5" />
-            <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="3em" font-family="Verdana" fill="#fff">${label.toUpperCase()}</text>
-        </svg>
-        `;
+    const svg = `<svg width="${iconWidth}" height="${iconHeight}"><rect x="0" y="0" width="100%" height="100%" fill="#${getRandomColor()}" rx="5" ry="5" /><text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="3em" font-family="Verdana" fill="#fff">${label.toUpperCase()}</text></svg>`;
     fileProps.thumbnailType = 'favicon';
     fileProps.width = iconWidth;
     fileProps.height = iconHeight;
