@@ -33,10 +33,10 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 
 #### Data
 * Bookmark data store in contain and cached in browser's local storage.
-* Import Data: Import data to local storage.
+* Import Data: Import data to local storage. Support import from browser bookmark (Netscape Bookmark File) and SpeedDials. (Only import label and url for bookmarks, no thunbmails).
 * Expprt Data: Export data from local storage.
 * Restore Data: In case any mistake , use Restore Data to restore data from container.
-* Commit Changes: Changes only applied to local storage, use Commit Changes to commit changes to container.
+* Commit Changes: To avoid any mistake, changes only applied to local storage (including importing data), use Commit Changes to commit changes to container when needed.
 
 #### Protection
 * Basic authentication available as an option. (see BASIC_AUTH in ENV Variables below).
