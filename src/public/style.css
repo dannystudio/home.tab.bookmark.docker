@@ -1,14 +1,27 @@
+:root {
+    color-scheme: light dark;
+    &:has(input[name="color-scheme"][value="light dark"]:checked) {
+        color-scheme: light dark;
+    }
+    &:has(input[name="color-scheme"][value="light"]:checked) {
+        color-scheme: light;
+    }
+    &:has(input[name="color-scheme"][value="dark"]:checked) {
+        color-scheme: dark;
+    }    
+}
+
 html, body {
     height: 100%;
     margin: 0px;
-    background: rgb(243, 243, 243);
+    background: light-dark(rgb(243, 243, 243), rgb(19, 20, 21));
     overflow-x: hidden;
 }
 
-body, div, a, form, input {
+body, div, a, form, input, button {
     font-family: Verdana, Helvetica, sans-serif;
     font-size: 14px;
-    color: rgb(17, 17, 17);
+    color: light-dark(rgb(17, 17, 17), rgb(137, 137, 137));
 }
 
 body, div, a {
@@ -25,7 +38,7 @@ button:disabled, button[disabled] {
 }
 
 input::placeholder {
-    color: rgb(185, 185, 185);
+    color: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     font-style: italic;
 }
 
@@ -38,8 +51,8 @@ input::placeholder {
     position: fixed;
     display: flex;
     width: 100vw;
-    border-bottom: 1px solid rgb(204, 204, 204);
-    background: rgb(255, 255, 255);
+    border-bottom: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85)); 
+    background: light-dark(rgb(255, 255, 255), rgb(40, 40, 40));
     gap: 0px;
     z-index: 10;
 }
@@ -57,11 +70,11 @@ input::placeholder {
 }
 
 .group-label:hover {
-    color: rgb(0, 0, 0);
+    color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
 }
 
 .group-selected {
-    background: rgb(243, 243, 243);
+    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
 }
 
 .group-visibility-hidden {
@@ -77,7 +90,7 @@ input::placeholder {
 }
 
 .add-new-group:hover {
-    background: rgb(243, 243, 243);
+    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
 }
 
 .bookmark-container-outer {
@@ -138,7 +151,7 @@ input::placeholder {
 }
 
 .message-alert-theme, .message-confirm-theme {
-    background: rgb(249, 106, 106);  
+    background: rgb(249, 106, 106); 
 }
 
 .message-info-theme {
@@ -213,8 +226,8 @@ input::placeholder {
 .form-container {
     display: none;
     padding: 10px;
-    background: rgb(233, 233, 233);
-    border: 6px solid rgb(255, 255, 255);
+    background: light-dark(rgb(233, 233, 233), rgb(42, 42, 42));
+    border: 6px solid light-dark(rgb(255, 255, 255), rgb(65, 65, 65));
     border-radius: 5px;
     transition: height 0.2s, opacity 0.1s ease-in;
     opacity: 0;
@@ -233,14 +246,14 @@ input::placeholder {
     border-radius: 3px;    
     background: transparent;
     font-size: 18px;
-    color: rgb(204, 204, 204);
+    color: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     float: right;
     cursor: pointer;
 }
 
 .form-close-button:hover:enabled {
-    background: rgb(204, 204, 204);
-    color: rgb(0, 0, 0);
+    background: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
+    color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
 }
 
 .form-disabled {
@@ -278,14 +291,15 @@ input::placeholder {
 .reload-thumbnail-options button {
     width: 30%;
     padding: 10px;
-    border: 2px solid rgb(243, 243, 243);
+    background: light-dark(rgb(240, 240, 240), rgb(49, 49, 49));
+    border: 2px solid light-dark(rgb(255, 255, 255), rgb(65, 65, 65));
     border-radius: 5px;
     text-align: center;
     cursor: pointer;
 }
 
 .reload-thumbnail-type-selected {
-    border: 2px solid rgb(159, 159, 159) !important;   
+    border: 2px solid light-dark(rgb(204, 204, 204), rgb(102, 102, 102)) !important;  
 }
 
 .reload-thumbnail-custom-url, .reload-thumbnail-custom-upload {
@@ -314,7 +328,8 @@ input::placeholder {
     height: 24px;
     padding: 5px 5px 5px 8px;
     margin-bottom: 10px;
-    border: 1px solid rgb(204, 204, 204);
+    border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
+    background: light-dark(transparent, rgb(55, 55, 55));
     border-radius: 3px;
 }
 
@@ -337,9 +352,9 @@ input::placeholder {
     min-width: 256px;
     min-height: 192px;
     margin: 30px;
-    border: 1px solid rgb(204, 204, 204);
+    border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     border-radius: 3px;    
-    background: rgb(255, 255, 255);
+    background: light-dark(rgb(255, 255, 255), rgb(40 , 40, 40));
     cursor: pointer;
 }
 
@@ -366,12 +381,12 @@ input::placeholder {
     border: 1px solid transparent;     
     background: transparent;   
     font-size: 30px;
-    color: rgb(204, 204, 204);
+    color: light-dark(rgb(204, 204, 204), rgb(40, 40, 40));
 }
 
 .add-new-bookmark:hover {
-    color: rgb(0, 0, 0);
-    background: rgb(233, 233, 233);
+    color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
+    background: light-dark(rgb(204, 204, 204), rgb(40, 40, 40));
 }
 
 .edit-group-icon-container, .edit-bookmark-icon-container {
@@ -389,7 +404,7 @@ input::placeholder {
     height: 30px;
     border: 0px;
     background: transparent;
-    color: rgb(255, 118, 118);   
+    color: light-dark(rgb(246, 91, 91), rgb(171, 16, 16));
     white-space: nowrap;
     align-items: center;
     filter: grayscale(0);
@@ -413,8 +428,8 @@ input::placeholder {
     width: 400px;
     height: 250px;
     padding: 10px 10px 20px 10px;
-    background: rgb(233, 233, 233);
-    border: 6px solid rgb(255, 255, 255);
+    background: light-dark(rgb(233, 233, 233), rgb(42, 42, 42));
+    border: 6px solid light-dark(rgb(255, 255, 255), rgb(65, 65, 65));
     border-radius: 5px;
 }
 
@@ -463,8 +478,8 @@ input::placeholder {
 }
 
 .import-close-button:hover {
-    background: rgb(204, 204, 204);
-    color: rgb(0, 0, 0);   
+    background: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
+    color: light-dark(rgb(17, 17, 17), rgb(137, 137, 137));
 }
 
 .dragging-in {
@@ -506,7 +521,7 @@ input::placeholder {
     height: 40px;
     max-width: 40px;
     max-height: 40px;
-    background: rgb(255, 255, 255);
+    background: light-dark(rgb(255, 255, 255), rgb(40, 40, 40));
     font-size: 30px;
     color: rgb(137, 137, 137);
     transform: rotate(90deg);     
@@ -517,18 +532,18 @@ input::placeholder {
 }
 
 .app-menu-icon:hover {
-    background: rgb(243, 243, 243);
-    color: rgb(0, 0, 0);
+    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
+    color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
 }
 
 .app-menu-content {
     position: relative;
     display: grid;
     top: 41px;
-    background: rgb(255, 255, 255);
-    border: 1px solid rgb(211, 211, 211);
+    background: light-dark(rgb(255, 255, 255), rgb(40, 40, 40));
+    border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     border-bottom-left-radius: 10px;
-    box-shadow: -1px 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: -1px 1px 3px light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.2));
     grid-template-rows: 0fr;
     transition: grid-template-rows .1s;
 }
@@ -546,11 +561,11 @@ input::placeholder {
 }
 
 .app-menu-content div:not(:last-child) {
-    border-bottom: 1px solid rgb(211, 211, 211);
+    border-bottom: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
 }
 
 .app-menu-content div:hover {
-    color: rgb(0, 0, 0);
+    color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
 }
 
 .app-menu-divider {
@@ -570,11 +585,15 @@ input::placeholder {
     top: -100px;
 }
 
+.hidden-color-scheme-options {
+    display: none;
+}
+
 .footer {
     position: fixed;
     bottom: 0px;
     right: 0px;
     margin: 10px;
-    color: rgb(204, 204, 204);
+    color: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     z-index: 0;
 }
