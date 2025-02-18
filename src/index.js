@@ -5,7 +5,7 @@ const formidable = require('express-formidable');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-const {createThumbnail} = require('./modules/thumbnail-factory');
+const {createThumbnail, saveBackgroundImage} = require('./modules/thumbnail-factory');
 
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
@@ -19,6 +19,7 @@ const port = process.env.PORT || 3000;
 const dataRoot = path.join(__dirname, '/data');
 const dataFile = `${dataRoot}/home-tab-bookmark-data.json`;
 const thumbnailDir = `${dataRoot}/thumbnail`;
+const backgroundDir = `${dataRoot}/background`;
 const recycleBin = `${dataRoot}/.recycle`;
 
 const authentication = (request, response, next) => {
@@ -72,6 +73,7 @@ app.use(formidable());
 app.use(authentication);
 app.use(express.static(path.join(__dirname, '/public')));
 app.use('/thumbnail',  express.static(thumbnailDir));
+app.use('/background',  express.static(backgroundDir));
 
 app.get('/script.js', (request, response) => {
     const vars = {
@@ -100,6 +102,25 @@ app.post('/process', async (request, response) => {
             if (result.status == 200 && req.thumbnail_delete) {
                 recycleOldThumbnail(req.thumbnail_delete);
             }
+            response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
+        })
+        .catch(error => {
+            console.log(error.message);
+            response.status(500).send(error.message);
+        });
+    }
+    else if (action == 'background') {
+        !fs.existsSync(backgroundDir) && fs.mkdirSync(backgroundDir);
+        const files = fs.readdirSync(backgroundDir);
+        for (const file of files) {
+            const filePath = path.join(backgroundDir, file);
+            fs.unlinkSync(filePath);
+        }
+        await saveBackgroundImage({
+            dir: backgroundDir,
+            buffer: req.upload_buffer
+        })
+        .then(result => {
             response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
         })
         .catch(error => {

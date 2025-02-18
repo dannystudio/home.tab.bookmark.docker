@@ -24,8 +24,8 @@
                 <button class="button group-form-submit-button"></button>
             </div>
         </form>
-        <div class="edit-group-icon-container">
-            <button class="delete-icon delete-group-icon"></button>
+        <div class="delete-group-button-container">
+            <button class="delete-button delete-group-button"></button>
         </div>
     </div>
     <div class="form-container bookmark-form">
@@ -39,46 +39,93 @@
             <input type="text" value="" maxlength="30" class="text-field">
             <div class="field-label">Thumbnail</div>
             <input type="hidden" value="" class="bookmark-thumbnail-type">
-            <div class="reload-thumbnail-options">
-            </div>
-            <input type="text" value="" maxlength="200" class="text-field reload-thumbnail-custom-url">
-            <div class="reload-thumbnail-custom-upload">
-                <div class="upload-drop-area-container" listen-to-event="false">
-                    <div class="upload-drop-area-content">
-                        <div>Please drop an image here</div>
-                        <div>OR</div>
-                        <div><label class="button select-file-button" for="uploadField">Select a File</label></div>
-                    </div>
-                </div>
-            </div> 
+            <div class="thumbnail-options"></div>
+            <input type="text" value="" maxlength="200" class="text-field thumbnail-custom-url">
+            <div class="thumbnail-upload-container"></div> 
             <div>
                 <button class="button bookmark-form-submit-button"></button>
             </div>
         </form>
-        <div class="edit-bookmark-icon-container">
-            <button class="delete-icon delete-bookmark-icon"></button>
+        <div class="delete-bookmark-button-container">
+            <button class="delete-button delete-bookmark-button"></button>
         </div>       
     </div>
-    <div class="import-drop-area-container" listen-to-event="false">
-        <div class="import-drop-area-content">
-            <div class="import-close-button-container">
-                <div class="form-close-button import-close-button">&#10006;</div>
+    <div class="settings-panel">
+        <button class="form-close-button close-settings-panel">&#10006;</button>
+        <div class="settings-panel-inner">
+            <div class="settings-side-menu">
+                <div class="settings-panel-header">Settings</div>
+                <div class="settings-menu-item-general">General</div>
+                <div class="settings-menu-item-appearance">Appearance</div>
+                <div class="settings-menu-item-data-management">Data Management</div>
             </div>
-            <div>Please drop a file here</div>
-            <div>OR</div>
-            <div><label class="button select-file-button" for="importField">Select a File</label></div>
+            <div class="settings-sessions">
+                <div class="settings-session-block settings-general">
+                    <div class="settings-section-header">General</div>
+                    <div class="form-elements-align">
+                        <input type="checkbox" id="remember_group_index" checked>
+                        <label for="remember_group_index"> Remember last group when open new home tab.</label>
+                    </div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="form-elements-align">
+                        <input type="checkbox" id="open_in_new_tab">
+                        <label for="open_in_new_tab"> Open bookmark in new tab.</label>
+                    </div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="form-elements-align">
+                        <input type="checkbox" id="auto_commit_changes">
+                        <label for="auto_commit_changes">Auto commit for any changes.</label>
+                    </div>                    
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="indent-5px">
+                        Auto dismiss popup message after <input type="number" id="auto_dismiss_timeframe" value="5" maxlength="2" min="0" max="10" class="number-field"> seconds,<br/>use 0 to disable auto dismiss.
+                    </div>
+                </div>
+                <div class="settings-session-block settings-appearance">
+                    <div class="settings-section-header">Appearance</div>
+                    <div class="indent-5px">Max bookmark per row <input type="number" id="max_bookmark_per_row" value="6" maxlength="2" min="1" max="18" class="number-field"></div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="indent-5px form-elements-align">                      
+                        <div>Theme</div>
+                        <input class="color-scheme-light-dark" name="color-scheme" id="color_scheme_light_dark" type="radio" value="light dark" checked>
+                        <label for="color_scheme_light_dark"> System</label>
+                        <input class="color-scheme-light" name="color-scheme" id="color_scheme_light" type="radio" value="light">
+                        <label for="color_scheme_light"> Light</label>
+                        <input class="color_scheme_dark" name="color-scheme" id="color_scheme_dark" type="radio" value="dark">
+                        <label for="color_scheme_dark"> Dark</label>
+                    </div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="indent-5px">
+                        <div class="form-elements-align">
+                            <div>Background</div>
+                            <button id="apply_background" class="button settings-button">Apply</button>
+                            <button id="remove_background" class="button settings-button">Remove</button>
+                        </div>
+                        <div class="background-upload-container"></div>
+                    </div>
+                </div>
+                <div class="settings-session-block settings-data-management">
+                    <div class="settings-section-header">Data Management</div>
+                    <div class="indent-5px">
+                        Import Data
+                        <div class="import-upload-container"></div>
+                    </div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="indent-5px form-elements-align">
+                        Export Data <button id="export_from_local" class="button settings-button">From Local</button> <button id="export_from_server" class="button settings-button">From Server</button>
+                    </div>
+                    <div class="item-divider">&nbsp;</div>
+                    <div class="indent-5px form-elements-align">
+                        Restore data from server <button id="restore_from_server" class="button settings-button">Restore</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>    
+    </div>
 </div>
-<form name="importForm">
-    <input type="file" id="importField" accept="application/json" class="import-file-input">
-</form>
-<form name="uploadForm">
-    <input type="file" id="uploadField" accept="image/png, image/jpeg" class="upload-file-input">
-</form>
 <div class="message-mask">
     <div class="message-container">
-        <div class="message-body"></div>
+        <div class="message-body-container"></div>
         <div class="message-progress-bar">
             <div class="message-progress-bar-fill"></div>
         </div>
@@ -92,11 +139,18 @@
 <div class="app-menu-container">
     <div class="app-menu-content" displayed="false"></div>
 </div>
-<div class="hidden-color-scheme-options">    
-    <input class="color-scheme-light-dark" name="color-scheme" type="radio" value="light dark">
-    <input class="color-scheme-light" name="color-scheme" type="radio" value="light">
-    <input class="color-scheme-dark" name="color-scheme" type="radio" value="dark">
+<div class="drop-area-mock">
+    <div class="drop-area-container-mock">
+        <div class="drop-area-content">
+            <div>Please drop a file here</div>
+            <div>OR</div>
+            <div><label class="button select-file-button" for="dropAreaField">Select a File</label></div>
+        </div>
+    </div>
 </div>
+<form name="dropAreaForm">
+    <input type="file" id="dropAreaField" accept="image/png, image/jpeg" class="drop-area-file-input">
+</form>
 <div class="footer"></div>
 </body>
 </html>

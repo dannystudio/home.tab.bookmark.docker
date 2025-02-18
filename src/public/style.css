@@ -18,7 +18,14 @@ html, body {
     overflow-x: hidden;
 }
 
-body, div, a, form, input, button {
+body {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+body, div, a, form, input, button, label {
     font-family: Verdana, Helvetica, sans-serif;
     font-size: 14px;
     color: light-dark(rgb(17, 17, 17), rgb(137, 137, 137));
@@ -31,6 +38,10 @@ body, div, a {
 
 div, button, input {
     outline: none !important;
+}
+
+label {
+    cursor: pointer;
 }
 
 button:disabled, button[disabled] {
@@ -151,26 +162,33 @@ input::placeholder {
 }
 
 .message-alert-theme, .message-confirm-theme {
-    background: rgb(249, 106, 106); 
+    background: rgb(187, 45, 59);
 }
 
 .message-info-theme {
-    background: rgb(140, 197, 140);
+    background: rgb(32, 156, 32);
+}
+
+.message-body-container {
+    display: flex;
+    width: 100%;
+    padding: 20px 10px;
 }
 
 .message-body {
-    width: 100%;
-    padding: 20px 10px;
-    font-size: 20px;
+    display: flex;
+    margin-left: 10px;
+    font-size: 16px;
     color: rgb(255, 255, 255);
     white-space: nowrap;
+    align-items: center;
 }
 
-.message-symbol-enlarged {
-    display: inline-block;
-    line-height: 24px;
-    font-size: 30px;
-    color: rgb(255, 255, 255);
+.message-symbol {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: white;
 }
 
 .message-progress-bar {
@@ -185,13 +203,12 @@ input::placeholder {
 }
 
 .message-info-progress-bar, .message-confirm:hover {
-    background: rgb(32, 156, 32);
+    background: rgb(3, 103, 3);
 }
 
 .message-progress-bar-fill {
     width: 0px;
     height: 10px;
-    transition: width 5s ease-out;
 }
 
 .message-progress-bar-fill-run {
@@ -209,7 +226,7 @@ input::placeholder {
     width: 24px;
     height: 24px;
     margin-right: 10px;
-    border: 3px solid rgb(255, 255, 255);
+    border: 2px solid rgb(255, 255, 255);
     border-radius: 15px;
     font-size: 18px;
     color:rgb(255, 255, 255);
@@ -219,11 +236,11 @@ input::placeholder {
 }
 
 .message-confirm {
-    background: rgb(140, 197, 140);
+    background: rgb(32, 156, 32);
     transform: rotate(5deg);
 }
 
-.form-container {
+.settings-panel, .form-container {
     display: none;
     padding: 10px;
     background: light-dark(rgb(233, 233, 233), rgb(42, 42, 42));
@@ -231,6 +248,44 @@ input::placeholder {
     border-radius: 5px;
     transition: height 0.2s, opacity 0.1s ease-in;
     opacity: 0;
+}
+
+.settings-panel-inner {
+    display: flex;
+    width: 560px;
+    flex-wrap: nowrap;
+}
+
+.settings-sessions {
+    width: 100%;
+    min-height: 360px;
+    border-left: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
+    padding: 0px 10px 0px 10px;
+}
+
+div[class^='settings-menu-item-'] {
+    line-height: 30px;
+    padding-right: 15px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.settings-session-block {
+    display: none;
+}
+
+.settings-session-block div {
+    line-height: 30px;
+}
+
+.item-divider {
+    line-height: 10px !important;
+    margin-bottom: 10px;
+    border-bottom: 1px dotted light-dark(rgb(204, 204, 204), rgb(85, 85, 85)); 
+}
+
+.indent-5px {
+    padding-left: 5px;
 }
 
 .form-container-show {
@@ -282,13 +337,13 @@ input::placeholder {
     height: 538px;
 }
 
-.reload-thumbnail-options {
+.thumbnail-options {
     display: flex;
     padding-bottom: 10px;
     justify-content: space-between;
 }
 
-.reload-thumbnail-options button {
+.thumbnail-options button {
     width: 30%;
     padding: 10px;
     background: light-dark(rgb(240, 240, 240), rgb(49, 49, 49));
@@ -298,24 +353,40 @@ input::placeholder {
     cursor: pointer;
 }
 
-.reload-thumbnail-type-selected {
+.thumbnail-type-selected {
     border: 2px solid light-dark(rgb(204, 204, 204), rgb(102, 102, 102)) !important;  
 }
 
-.reload-thumbnail-custom-url, .reload-thumbnail-custom-upload {
+.thumbnail-custom-url, .thumbnail-upload-container {
     display: none;
 }
 
-.reload-thumbnail-custom-upload {
-    justify-content: center;
-    padding-bottom: 10px;
-}
-
-.group-form-header, .bookmark-form-header {
+.settings-panel-header, .settings-section-header, .group-form-header, .bookmark-form-header {
     display: inline-block;
-    margin: 0px 0px 10px 2px;    
+    margin: 0px 0px 10px 2px;
+    line-height: 24px !important;
     font-size: 20px;
     color: rgb(3, 110, 205);
+}
+
+.settings-section-header {
+    color: light-dark(rgb(17, 17, 17), rgb(137, 137, 137)) !important;
+}
+
+.form-elements-align {
+    display: flex;
+    align-items: center;
+}
+
+.form-elements-align input[type='checkbox'], input[type='radio'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-elements-align input[type='radio'] {
+    position: relative;
+    top: -1px;
 }
 
 .field-label {
@@ -331,6 +402,13 @@ input::placeholder {
     border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     background: light-dark(transparent, rgb(55, 55, 55));
     border-radius: 3px;
+}
+
+.number-field {
+    height: 24px;  
+    border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
+    background: light-dark(transparent, rgb(55, 55, 55));
+    border-radius: 3px;      
 }
 
 .button {
@@ -389,22 +467,22 @@ input::placeholder {
     background: light-dark(rgb(204, 204, 204), rgb(40, 40, 40));
 }
 
-.edit-group-icon-container, .edit-bookmark-icon-container {
+.delete-group-button-container, .delete-bookmark-button-container {
     position: relative;
     display: none;
     gap: 5px;
     top: 10px;
     left: -3px;
-    width: 300px;
+    width: 200px;
 }
 
-.delete-icon {
+.delete-button {
     display: flex;
     width: 30px;
     height: 30px;
     border: 0px;
     background: transparent;
-    color: light-dark(rgb(246, 91, 91), rgb(171, 16, 16));
+    color: rgb(187, 45, 59);
     white-space: nowrap;
     align-items: center;
     filter: grayscale(0);
@@ -413,73 +491,52 @@ input::placeholder {
     cursor: pointer;    
 }
 
-.delete-icon span {
-    position: relative;
-    top: 3px;
-    left: 5px;
+.delete-button span {
     font-size: 16px;
 }
 
-.delete-icon:hover:enabled {
-    width: 160px;
+.delete-group-button:hover:enabled {
+    width: 140px;
 }
 
-.import-drop-area-container, .upload-drop-area-container {
-    width: 400px;
-    height: 250px;
-    padding: 10px 10px 20px 10px;
+.delete-bookmark-button:hover:enabled {
+    width: 176px;
+}
+
+.drop-area-mock, .drop-area-file-input {
+    display: none;
+}
+
+.import-upload-container, .thumbnail-upload-container, .background-upload-container {
+    display: none;   
+}
+
+.background-upload-container {
+    margin-top: 10px;
+}
+
+.drop-area-container{
+    width: auto;
+    height: 192px;
+    padding: 10px;
     background: light-dark(rgb(233, 233, 233), rgb(42, 42, 42));
+    background-size: contain !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;     
     border: 6px solid light-dark(rgb(255, 255, 255), rgb(65, 65, 65));
     border-radius: 5px;
 }
 
-.import-drop-area-container {
-    display: none;
-    width: 400px;
-    height: 250px;    
-}
-
-.upload-drop-area-container {
-    width: 256px;
-    height: 192px;
-    background-size: contain !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;       
-}
-
-.import-drop-area-content, .upload-drop-area-content {
+.drop-area-content {
     display: grid;
-}
-
-.import-drop-area-content {
-    grid-template-rows: 20px 160px 20px 50px;
-}
-
-.upload-drop-area-content {
     grid-template-rows: 122px 20px 50px;
 }
 
-.import-drop-area-content div, .upload-drop-area-content div {
+.drop-area-content div, .import-drop-area-content div, .upload-drop-area-content div {
     display: flex;
     width: 100%;
     justify-content: center;
     align-items: center;
-}
-
-.import-close-button-container {
-    display: flex;
-    justify-content: end !important;
-}
-
-.import-close-button {
-    position: relative;
-    top: -1px;
-    width: 16px !important;
-}
-
-.import-close-button:hover {
-    background: light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
-    color: light-dark(rgb(17, 17, 17), rgb(137, 137, 137));
 }
 
 .dragging-in {
@@ -487,16 +544,21 @@ input::placeholder {
     background-size: 0 0 !important;
 }
 
-.import-file-input, .upload-file-input {
-    display: none;
-}
-
-.select-file-button {
+.select-file-button, .settings-button {
     display: flex;
     width: 90px;
     padding: 0px 10px;
     align-items: center;
     justify-content: center;
+}
+
+.settings-button {
+    position: relative;
+    top: -1px;
+    left: 10px;
+    width: 120px;
+    margin-right: 15px;
+    float: unset !important; 
 }
 
 .app-menu-container {

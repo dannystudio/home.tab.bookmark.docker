@@ -1,15 +1,14 @@
 // ejs variables
 const appName='<%=appName%>';
 const version='<%=version%>';
-const maxBookmarkPerRow = parseInt('<%=maxBookmarkPerRow%>');
-const openInNewTab = Boolean(parseInt('<%=openInNewTab%>'));
 // end of ejs
 let homeTabData = {};
-let groupForm, bookmarkForm, importForm;
+let groupForm, bookmarkForm, dropAreaForm;
 let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
-let uploadBuffer, bookmarkSpace;
+let rememberGroupIndex, openInNewTab, autoCommitChanges, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
+const settingsMenuItem = ['general', 'appearance', 'data-management'];
 
 const qs = (selector, all = false) => {
     return (typeof selector === 'string' ? (!all ? document.querySelector(selector) : document.querySelectorAll(selector)) : selector);
@@ -97,7 +96,7 @@ const getFormValues = form => {
     return values;
 };
 
-const getDataFromServer = isInit => {
+const getDataFromServer = (isInit) => {
     const formData = new FormData();
     formData.append('action', 'restore');
     fetch('/process/', {
@@ -140,7 +139,7 @@ const setDataToServer = (silent = false) => {
             body: formData
         })
         .then(resp => {
-            resp.ok && !silent && showMessagePopup('Chnages committed successfully.', 'info');
+            resp.ok && !silent && showMessagePopup('Changes committed successfully.', 'info');
         })
         .catch(error => {
             !silent && showMessagePopup('Error while commit changes, please try again later.');
@@ -170,6 +169,7 @@ const setDataToLocal = (skipVerify = false) => {
         homeTabData.timestamp = Date.now();
         homeTabData.version = version;
         localStorage.setItem('home-tab-data', JSON.stringify(homeTabData));
+        autoCommitChanges && setDataToServer(true);
         return true;
     }
     else {
@@ -208,7 +208,7 @@ const closeMessagePopup = () => {
     const messageObj = qs('.message-container');
     const type = messageObj.getAttribute('message-type');
     hide('.message-mask', '.message-confirm-button-container', '.message-progress-bar');
-    html('.message-body');
+    html('.message-body-container');
     removeClass('.message-container', `message-${type}-theme`, 'message-default-cursor', 'message-container-show');
     removeClass('.message-progress-bar', `message-${type}-progress-bar`);
     removeClass('.message-progress-bar-fill', `message-${type}-theme`, 'message-progress-bar-fill-run');
@@ -216,8 +216,8 @@ const closeMessagePopup = () => {
 };
 
 const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type == alert || info || confirm
-    const messageSymbol  = (type == 'alert' ? '&#9785;' : `<div class="message-symbol-enlarged">${(type == 'info' ? '&#9786;' : '&#9888;')}</div>`);
-    html('.message-body', `${messageSymbol} ${message}`);
+    const messageSymbol  = `<div class="message-symbol">${svgSource[type]}</div>`;
+    html('.message-body-container', `${messageSymbol} <div class="message-body">${message}</div>`);
     attr('.message-container', {'message-type': type});
     addClass('.message-container', `message-${type}-theme`);
     if (type == 'confirm') {
@@ -230,14 +230,17 @@ const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type
         }
     }
     else {
-        show('.message-progress-bar', 'block');
-        addClass('.message-progress-bar', `message-${type}-progress-bar`);
-        addClass('.message-progress-bar-fill', `message-${type}-theme`);
         qs('.message-container').addEventListener('click', closeMessagePopup);
-        setTimeout(() => {
-            addClass('.message-progress-bar-fill', 'message-progress-bar-fill-run');
-        }, 50);
-        messageTimer = setTimeout(closeMessagePopup, 5000);
+        show('.message-progress-bar', 'block');
+        if (autoDismissTimeframe > 0) {
+            addClass('.message-progress-bar', `message-${type}-progress-bar`);
+            addClass('.message-progress-bar-fill', `message-${type}-theme`);
+            setTimeout(() => {
+                addClass('.message-progress-bar-fill', 'message-progress-bar-fill-run');
+            }, 50);
+            qs('.message-progress-bar-fill').style.transition = `width ${autoDismissTimeframe}s ease-out`;
+            messageTimer = setTimeout(closeMessagePopup, autoDismissTimeframe * 1000);
+        }
     }
     addClass('.message-container', 'message-container-show');
     show('.message-mask');
@@ -270,21 +273,14 @@ const renderAppMenuContent = (hiddenGroups = []) => {
         const divider = create('div', '', 'app-menu-divider');
         container.append(divider);        
     }
-    const importDataItem = create('div', '&#9900; Import Data');
-    importDataItem.addEventListener('click', initImportData);
-    const exportDataItem = create('div', '&#9900; Export Data');
-    exportDataItem.addEventListener('click', exportData);
-    const restoreDataItem = create('div', '&#9900; Restore Data');
-    restoreDataItem.addEventListener('click', () => {
-        getDataFromServer();
-        closeAppMenu();
-    });
+    const settingsItem = create('div', '&#9900; Settings');
+    settingsItem.addEventListener('click', showSettingsPanel);
     const commitChangesItem = create('div', '&#9900; Commit Changes');
     commitChangesItem.addEventListener('click', () => {
         setDataToServer();
         closeAppMenu();
     });    
-    container.append(importDataItem, exportDataItem, restoreDataItem, commitChangesItem);
+    container.append(settingsItem, commitChangesItem);
 };
 
 const renderGroups = () => {
@@ -363,7 +359,7 @@ const goToGroup = (group = 0) => {
 const closeGroupForm = () => {
     groupForm.reset();
     editingMemo.length = 0;
-    hide('.popup-mask', '.group-form', '.edit-group-icon-container');
+    hide('.popup-mask', '.group-form', '.delete-group-button-container');
     removeClass('.group-form', 'form-container-show');
 };
 
@@ -440,7 +436,7 @@ const editGroup = event => {
         groupIndex,
         groupName
     ]);
-    show('.edit-group-icon-container');
+    show('.delete-group-button-container');
     editingMemo.push(groupIndex, groupName);
     showGroupForm();
     return false;
@@ -499,10 +495,10 @@ const submitGroupForm = () => {
 const closeBookmarkForm = () => {
     bookmarkForm.reset();
     editingMemo.length = 0;
-    uploadBuffer = undefined;    
-    enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
+    uploadBuffer = undefined;
+    enableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-button');
     removeClass('.bookmark-form', 'form-disabled', 'bookmark-form-expand');
-    hide('.popup-mask', '.bookmark-form', '.edit-bookmark-icon-container');
+    hide('.popup-mask', '.bookmark-form', '.delete-bookmark-button-container');
     removeClass('.bookmark-form', 'form-container-show');
 };
 
@@ -627,7 +623,7 @@ const editBookmark = (bookmark, bookmarkIndex) => {
         '',
         ''
     ]);
-    show('.edit-bookmark-icon-container');
+    show('.delete-bookmark-button-container');
     editingMemo.push(bookmarkIndex, bookmarkLabel, bookmarkUrl, bookmarkThumbnail);
     switchReloadThumbnailType();
     showBookmarkForm();
@@ -640,88 +636,37 @@ const addBookmark = () => {
     showBookmarkForm();
 };
 
+const initThumbnailUploader = () => {
+    setDropArea('thumbnail')
+};
+
 const switchReloadThumbnailType = (type = '') => {
     uploadBuffer = undefined;
-    const buttons = qs('.reload-thumbnail-options button', true);
+    const buttons = qs('.thumbnail-options button', true);
     buttons.forEach(elem => {
         elem.innerText.toLowerCase() == type ?
-        addClass(elem, 'reload-thumbnail-type-selected') :
-        removeClass(elem, 'reload-thumbnail-type-selected');
+        addClass(elem, 'thumbnail-type-selected') :
+        removeClass(elem, 'thumbnail-type-selected');
     });
     if (type == '') {
-        hide('.reload-thumbnail-custom-url', '.reload-thumbnail-custom-upload');
+        hide('.thumbnail-custom-url', '.thumbnail-upload-container');
         removeClass('.bookmark-form', 'bookmark-form-small-expand', 'bookmark-form-full-expand');
     }
     else if (type == 'upload') {
-        hide('.reload-thumbnail-custom-url');
-        show('.reload-thumbnail-custom-upload');
+        hide('.thumbnail-custom-url');
+        show('.thumbnail-upload-container');
         addClass('.bookmark-form', 'bookmark-form-small-expand');
         addClass('.bookmark-form', 'bookmark-form-full-expand');
-        initUploadImage();
+        initThumbnailUploader();
     }
     else {
-        attr('.reload-thumbnail-custom-url', {placeholder: `Option: Get ${type} from this url instead`});
-        hide('.reload-thumbnail-custom-upload');
-        show('.reload-thumbnail-custom-url');
+        attr('.thumbnail-custom-url', {placeholder: `Option: Get ${type} from this url instead`});
+        hide('.thumbnail-upload-container');
+        show('.thumbnail-custom-url');
         removeClass('.bookmark-form', 'bookmark-form-full-expand');
         addClass('.bookmark-form', 'bookmark-form-small-expand');
     }
     setValue('.bookmark-thumbnail-type', type);
-};
-
-const previewImage = files => {
-    if (files[0].type != 'image/png' && files[0].type != 'image/jpeg') {
-        showMessagePopup('Invalid file format.');
-        uploadBuffer = undefined;
-    }
-    else {
-        let reader = new FileReader();
-        reader.readAsDataURL(files[0]);
-        reader.onloadend = () => {
-            uploadBuffer = reader.result;
-            qs('.upload-drop-area-container').style.backgroundImage = `url(${reader.result})`;
-        };
-    }
-};
-
-const initUploadImage = () => {
-    const preventDefaults = event => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-    
-    const dragEnter = () => {
-        addClass('.upload-drop-area-container', 'dragging-in');
-    };
-      
-    const dragLeave  = () => {
-        removeClass('.upload-drop-area-container', 'dragging-in');
-    };
-
-    const handleDrop = event => {
-        const dt = event.dataTransfer;
-        const files = dt.files;
-        previewImage(files);
-    };
-
-    const dropArea = qs('.upload-drop-area-container');
-    const listenToEvents = dropArea.getAttribute('listen-to-event') == 'true';
-    if (!listenToEvents) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-            dropArea.addEventListener(event, preventDefaults);
-        });
-          
-        ['dragenter', 'dragover'].forEach(event => {
-            dropArea.addEventListener(event, dragEnter);
-        });
-          
-        ['dragleave', 'drop'].forEach(event => {
-            dropArea.addEventListener(event, dragLeave);
-        });
-        attr(dropArea, {'listen-to-event': (!listenToEvents).toString()});
-    }
-    dropArea.style.backgroundImage = '';
-    dropArea.addEventListener('drop', handleDrop, false);
 };
 
 const checkExistingBookmarkLabel = (groupIndex, bookmarkIndex, bookmarkLabel) => {
@@ -774,8 +719,8 @@ const submitBookmarkForm = () => {
                 }
             };
             if (shouldReloadThumbnail) {
-                html('.bookmark-form-submit-button', `<img src="data:image/png;base64, ${base64ImageData.loading}">`);
-                disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-icon');
+                html('.bookmark-form-submit-button', svgSource.loading);
+                disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-button');
                 const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
                 const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
                 const formData = new FormData();
@@ -870,16 +815,11 @@ const deleteItem = () => {
         return false;
     }
     let message = `Do you want to delete &#34;${itemNameLabel}&#34;?`;
-    isGroup && (message += '<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This will also remove bookmarks in this group.');
+    isGroup && (message += '<br/>This will also remove bookmarks in this group.');
     showMessagePopup(message, 'confirm', {
         confirmed: preceedDeleteItem,
-        cancelled: cancelDeleteItem
+        cancelled: closeMessagePopup
     });
-};
-
-const closeImportContainer = () => {
-    importForm.reset();    
-    hide('.popup-mask', '.import-drop-area-container');
 };
 
 const convertSpeedDialsData = (data) => {
@@ -969,93 +909,292 @@ const isNetscapeBookmarkData = data => {
 
 const importData = files => {
     const uploadFile = files[0];    // only handle the first file
-    if (!['application/json', 'text/html'].includes(uploadFile.type)) {
-        showMessagePopup('Invalid file format.');
-        importForm.reset();
-    }
-    else {
-        const dataType = uploadFile.type.split('/')[1];
-        const reader = new FileReader();
-        reader.onload = event => {
-            try {
-                const fileContent = event.target.result;
-                const importedData = dataType == 'json' ? JSON.parse(fileContent) : fileContent;
-                const isNetscapeBookmark = dataType == 'html' && isNetscapeBookmarkData(importedData);
-                const isSpeedDials = dataType == 'json' && isSpeedDialsData(importedData);
-                const isHomeTabBookmark = dataType == 'json' && isHomeTabBookmarkData(importedData);
-                if (isNetscapeBookmark || isSpeedDials || isHomeTabBookmark) {
-                    homeTabData = isNetscapeBookmark ? convertBrowserData(importedData) :
-                        (isSpeedDials ? convertSpeedDialsData(importedData) : importedData.home_tab_data);
-                    setDataToLocal(true);
-                    renderGroups();
-                    goToGroup(homeTabData.current_group);
-                    closeImportContainer();
-                    showMessagePopup('Data import successfully.', 'info');
-                }
-                else {
-                    showMessagePopup('Invalid file format.');
-                    importForm.reset();                   
-                }
+    const dataType = uploadFile.type.split('/')[1];
+    const reader = new FileReader();
+    reader.onload = event => {
+        try {
+            const fileContent = event.target.result;
+            const importedData = dataType == 'json' ? JSON.parse(fileContent) : fileContent;
+            const isNetscapeBookmark = dataType == 'html' && isNetscapeBookmarkData(importedData);
+            const isSpeedDials = dataType == 'json' && isSpeedDialsData(importedData);
+            const isHomeTabBookmark = dataType == 'json' && isHomeTabBookmarkData(importedData);
+            if (isNetscapeBookmark || isSpeedDials || isHomeTabBookmark) {
+                homeTabData = isNetscapeBookmark ? convertBrowserData(importedData) :
+                    (isSpeedDials ? convertSpeedDialsData(importedData) : importedData.home_tab_data);
+                setDataToLocal(true);
+                renderGroups();
+                goToGroup(homeTabData.current_group);
+                showMessagePopup('Data import successfully.', 'info');
             }
-            catch (error) {
-                showMessagePopup('Error, please try again later.');
-                importForm.reset(); 
+            else {
+                showMessagePopup('Invalid file format.');
             }
-        };
-        reader.readAsText(uploadFile);
-    }
+        }
+        catch (error) {
+            showMessagePopup('Error, please try again later.');
+        }
+    };
+    reader.readAsText(uploadFile);
 };
 
-const initImportData = () => {
-    const preventDefaults = event => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-    
-    const dragEnter = () => {
-        addClass('.import-drop-area-container', 'dragging-in');
-    };
-      
-    const dragLeave  = () => {
-        removeClass('.import-drop-area-container', 'dragging-in');
-    };
-
-    const handleDrop = event => {
-        const dt = event.dataTransfer;
-        const files = dt.files;
-        importData(files);
-    };
-
-    const dropArea = qs('.import-drop-area-container');
-    const listenToEvents = dropArea.getAttribute('listen-to-event') == 'true';
-    if (!listenToEvents) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-            dropArea.addEventListener(event, preventDefaults);
-        });
-          
-        ['dragenter', 'dragover'].forEach(event => {
-            dropArea.addEventListener(event, dragEnter);
-        });
-          
-        ['dragleave', 'drop'].forEach(event => {
-            dropArea.addEventListener(event, dragLeave);
-        });
-        attr(dropArea, {'listen-to-event': (!listenToEvents).toString()});
-    }
-    dropArea.addEventListener('drop', handleDrop, false);
-    closeAppMenu();
-    show('.popup-mask');
-    show('.import-drop-area-container', 'block');
+const initImportUploader = () => {
+    setDropArea('import');
 };
 
-const exportData = () => {
-    closeAppMenu();
-    const dataString = 'data:text/json;charset=utf-8,' + encodeURIComponent(`{"home_tab_data":${JSON.stringify(homeTabData)}}`);
+const downloadDataFile = data => {
+    const stringifyData = data ? JSON.stringify(data) : `{"home_tab_data":${JSON.stringify(homeTabData)}}`;
+    const dataString = 'data:text/json;charset=utf-8,' + encodeURIComponent(stringifyData);
     const exportDataAnchor = create('a', '', '', {
         href: dataString,
         download: 'home-tab-bookmark-data.json'
     });
-    exportDataAnchor.click();  
+    exportDataAnchor.click();
+};
+
+const exportFromLocal = () => {
+    downloadDataFile();  
+};
+
+const exportFromServer = () => {
+    const formData = new FormData();
+    formData.append('action', 'restore');
+    fetch('/process/', {
+        method: 'POST',
+        header: {'Content-Type': 'multipart/form-data'},
+        body: formData
+    })    
+    .then(resp => resp.json())
+    .then(data => {
+        if (isHomeTabBookmarkData(data.home_tab_data)) {
+            downloadDataFile(data);
+        }
+        else {
+            showMessagePopup('Data corrupted, try import data from local machine.');
+        }
+    })
+    .catch(error => {
+        showMessagePopup('Error while retrieving data, please try again later.');
+    });  
+};
+
+const preceedRemoveBackground = () => {
+    document.body.style.backgroundImage = '';
+    qs('.drop-area-container').style.backgroundImage = '';
+    homeTabData.background_image = '';
+    setDataToLocal(true);
+    closeMessagePopup();
+};
+
+const removeBackground = () => {
+    showMessagePopup('Do you want to remvoe background image?', 'confirm', {
+        confirmed: preceedRemoveBackground,
+        cancelled: closeMessagePopup
+    });
+};
+
+const applyBackground = () => {
+    if (typeof uploadBuffer !== 'string') {
+        showMessagePopup('Please select a file to upload.');
+        return false;
+    }
+    html('#apply_background', svgSource.loading);
+    qs('#apply_background').disabled = true;
+    const formData = new FormData();
+    formData.append('action', 'background');
+    formData.append('upload_buffer', uploadBuffer);
+    fetch('/process/', {
+        method: 'POST',
+        header: {'Content-Type': 'multipart/form-data'},
+        body: formData
+    })
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.filepath) {
+            document.body.style.backgroundImage = `url(${data.filepath})`;
+            showMessagePopup('Background image applied.', 'info');
+            html('#apply_background', 'Apply');
+            qs('#apply_background').disabled = false;
+            homeTabData.background_image = data.filepath;
+            setDataToLocal(true);
+            cleanUploadBuffer();
+        }
+    });
+};
+
+const previewImage = files => {
+    let reader = new FileReader();
+    reader.readAsDataURL(files[0]);
+    reader.onloadend = () => {
+        uploadBuffer = reader.result;
+        qs('.drop-area-container').style.backgroundImage = `url(${reader.result})`;
+    };
+};
+
+const verifyDrop = (files) => {
+    const acceptedFormat = qs('.drop-area-file-input').getAttribute('accept');
+    const uploadFile = files[0];
+    if (!acceptedFormat.split(',').includes(uploadFile.type)) {
+        showMessagePopup('Invalid file format.');
+    }
+    else {
+        const type = qs('.drop-area-file-input').getAttribute('upload-type');
+        if (type == 'import') {
+            importData(files);
+        }
+        else if (type == 'thumbnail' || type == 'background') {
+            previewImage(files);
+        }
+    }
+};
+
+const cleanUploadBuffer = () => {
+    dropAreaForm.reset();
+    uploadBuffer = undefined;
+};
+
+const resetDropArea = () => {
+    ['import', 'thumbnail', 'background'].forEach(container => {
+        html(`.${container}-upload-container`);
+    });
+    cleanUploadBuffer();
+};
+
+const setDropArea = (type) => { // import / thumbnail / background
+    resetDropArea();
+    const acceptedFormat = type == 'import' ? 'application/json,text/html' : 'image/png,image/jpeg';
+    const dropAreaCode = qs('.drop-area-mock').innerHTML.replace(/-mock/g, '');
+    const targetSelector = `.${type}-upload-container`;
+    html(targetSelector, dropAreaCode);
+    attr('.drop-area-file-input', {
+        accept: acceptedFormat,
+        'upload-type': type
+    });
+    const dropArea = qs('.drop-area-container');
+    qs('.drop-area-container').style.backgroundImage = `url(${homeTabData.background_image})`;
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, event => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    });
+        
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, () => {
+            addClass('.drop-area-container', 'dragging-in');
+        });
+    });
+        
+    ['dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, () => {
+            removeClass('.drop-area-container', 'dragging-in');
+        });
+    });
+    dropArea.addEventListener('drop', event => {
+        const dt = event.dataTransfer;
+        const files = dt.files;
+        verifyDrop(files);
+    }, false);
+    closeAppMenu();
+    show('.popup-mask');
+    show(targetSelector, 'block');
+};
+
+const setSettings = (applyToForm = true) => {
+    rememberGroupIndex = homeTabData.hasOwnProperty('remember_group_index') ? homeTabData.remember_group_index : true;
+    openInNewTab = homeTabData.hasOwnProperty('open_in_new_tab') ? homeTabData.open_in_new_tab : false;
+    autoCommitChanges = homeTabData.hasOwnProperty('auto_commit_changes') ? homeTabData.auto_commit_changes : false;
+    autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 5;
+    maxBookmarkPerRow = homeTabData.hasOwnProperty('max_bookmark_per_row') ? parseInt(homeTabData.max_bookmark_per_row) : 6;
+    const appBackgroundImage = homeTabData.hasOwnProperty('background_image') ? homeTabData.background_image : '';
+    appBackgroundImage != '' && (document.body.style.backgroundImage = `url(${appBackgroundImage})`);
+    const colorScheme = homeTabData.hasOwnProperty('color_scheme') ? homeTabData.color_scheme : 'light_dark';
+    if (applyToForm) {
+        qs('#remember_group_index').checked = rememberGroupIndex;
+        qs('#open_in_new_tab').checked = openInNewTab;
+        qs('#auto_commit_changes').checked = autoCommitChanges;
+        qs('#auto_dismiss_timeframe').value = autoDismissTimeframe;
+        qs('#max_bookmark_per_row').value = maxBookmarkPerRow;
+        qs(`#color_scheme_${colorScheme}`).checked = true;
+    }
+    setBookmarkContainer();
+};
+
+const saveSettings = (id, ...value) => {
+    const [val] = value;
+    if (id.match(/(color_scheme_)/) != null) {
+        console.log(val)
+        homeTabData.color_scheme = id.replace(/color_scheme_/, '');
+    }
+    if (['remember_group_index', 'max_bookmark_per_row', 'open_in_new_tab', 'auto_commit_changes', 'auto_dismiss_timeframe'].indexOf(id) != -1) {
+        homeTabData[id] = val;
+    }
+    setSettings(false);
+    setDataToLocal(true);
+};
+
+const registSettingsEvents = () => {
+    qs('.close-settings-panel').addEventListener('click', closeSettingsPanel);
+    qs('input[type="checkbox"]', true).forEach(obj => {
+        obj.addEventListener('click', event => {
+            saveSettings(event.target.id, event.target.checked);
+        });
+    });
+    qs('input[type="radio"]', true).forEach(obj => {
+        obj.addEventListener('click', event => {
+            saveSettings(event.target.id, event.target.checked);
+        });
+    });
+    qs('input[type="number"]', true).forEach(obj => {
+        obj.addEventListener('change', event => {
+            saveSettings(event.target.id, event.target.value);
+        });
+    });    
+    qs('.settings-button', true).forEach(obj => {
+        obj.addEventListener('click', event => {
+            const objId = event.target.id;
+            switch(event.target.id) {
+                case 'restore_from_server':
+                    getDataFromServer();
+                    break;
+                case 'export_from_local':
+                    exportFromLocal();
+                    break;
+                case 'export_from_server':
+                    exportFromServer();
+                    break;
+                case 'apply_background':
+                    applyBackground();
+                    break;
+                case 'remove_background':
+                    removeBackground();
+                    break;                    
+                default:
+                    return false;
+            }
+        });
+    });       
+}
+
+const goToSettingSection = (section) => {
+    settingsMenuItem.forEach(item => {
+        item == section ? show(`.settings-${item}`, 'block') : hide(`.settings-${item}`);
+    });
+    section != 'general' && setDropArea(section == 'appearance' ? 'background' : 'import');
+};
+
+const closeSettingsPanel = () => {
+    resetDropArea();
+    hide('.popup-mask', '.settings-panel');
+};
+
+const showSettingsPanel = () => {
+    closeAppMenu();
+    show('.popup-mask');
+    setTimeout(() => {
+        addClass('.settings-panel', 'form-container-show');
+    }, 100);
+    show('.settings-panel', 'block');
+    goToSettingSection(settingsMenuItem[0]);
 };
 
 const closeAppMenu = () => {
@@ -1078,14 +1217,14 @@ const setBookmarkContainer = () => {
 
 const handleKeyPressed = event => {
     if (event.key == 'Escape') {
-        if (qs('.message-mask').style.display != 'none') {
+        if (qs('.message-mask').style.display != 'none' && qs('.message-mask').style.display != '') {
             closeMessagePopup();
         }
         else {
             if (qs('.popup-mask').style.display != 'none') {
                 closeGroupForm();
                 closeBookmarkForm();
-                closeImportContainer();
+                closeSettingsPanel();
             }
         } 
         closeAppMenu();
@@ -1099,7 +1238,7 @@ const handleKeyReleased = event => {
 
 const renderHTMLElements = () => {
     // thumbnail option buttons
-    const buttonContainer = qs('.reload-thumbnail-options');
+    const buttonContainer = qs('.thumbnail-options');
     ['favicon', 'screenshot', 'upload'].forEach(btn => {
         const button = create('button', `${btn.charAt(0).toUpperCase()}${btn.slice(1)}`);
         button.addEventListener('click', (event) => {
@@ -1110,9 +1249,7 @@ const renderHTMLElements = () => {
     });
     // delete button
     ['bookmark', 'group'].forEach(item => {
-        const deleteIcon = create('img', '', '', {src: `data:image/png;base64, ${base64ImageData.delete}`});
-        const label = create('span', `Delete ${item.charAt(0).toUpperCase()}${item.slice(1)}`);
-        qs(`.delete-${item}-icon`).append(deleteIcon, label);
+        html(qs(`.delete-${item}-button`), `${svgSource.delete}<span>Delete ${item}</span>`);
     });
 };
 
@@ -1123,6 +1260,7 @@ const registEvents = () => {
     document.addEventListener('scroll', closeAppMenu);
     document.addEventListener('visibilitychange', () => {forceOpenInNewTab = false});
     // regist html elemet event
+    registSettingsEvents();
     groupForm.addEventListener('submit', event => {
         event.preventDefault();
         submitGroupForm();
@@ -1132,7 +1270,12 @@ const registEvents = () => {
         submitBookmarkForm();
     });
     qs('.app-menu-icon').addEventListener('click', toggleAppMenu);
-    qs('.delete-icon', true).forEach(icon => icon.addEventListener('click', deleteItem));
+    settingsMenuItem.forEach(item => {
+        qs(`.settings-menu-item-${item}`).addEventListener('click', () => {
+            goToSettingSection(item);
+        });
+    });
+    qs('.delete-button', true).forEach(icon => icon.addEventListener('click', deleteItem));
     qs('.close-group-form').addEventListener('click', event => {
         event.preventDefault();
         closeGroupForm();
@@ -1141,9 +1284,7 @@ const registEvents = () => {
         event.preventDefault();
         closeBookmarkForm();
     });
-    qs('.import-close-button').addEventListener('click', closeImportContainer);
-    qs('.import-file-input').addEventListener('change', event => importData(event.target.files));
-    qs('.upload-file-input').addEventListener('change', event => previewImage(event.target.files));
+    qs('.drop-area-file-input').addEventListener('change', event => verifyDrop(event.target.files));
     // regist window event   
     window.addEventListener('resize', () => {
         setGruopVisibility();
@@ -1161,10 +1302,12 @@ const setBookmarkSpace = () => {
 };
 
 const doneInit = () => {
+    setSettings();
     renderGroups();
+    goToGroup(rememberGroupIndex ? homeTabData.current_group : 0);
     goToGroup(homeTabData.current_group);
     setBookmarkSpace();
-    [groupForm, bookmarkForm, importForm] = document.forms;
+    [groupForm, bookmarkForm, dropAreaForm] = document.forms;
     renderHTMLElements();
     registEvents();
     html('.footer', `${appName} v${version}`);
@@ -1182,10 +1325,13 @@ const init = () => {
     }
 };
 
-// base64 image data
-const base64ImageData = {
-    delete: 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABnklEQVRIie3VP2rcQBQG8N8IocIEQ7YIIZiQyifwAVIG0qXyBVymSJEiJ0iVwqT0JdwEXLrOOYJZ1uAipFoWTYoZ7Y4UrbSYFCnywaCnT+/fNyPpBTOILPAVz9FmusIy8r7iYS7HJFouW95FmpY6ptVk7nIuvprpHu4D14F1xSaktQ5c476dSoBQJHqDt9192PE9extU+A1tfMNNQJ2JBT7gI9rOcaxIed1jV/iC73ioc/UmcIJPoxJHiswoeBFptvG5y2eZfBL4aRfYBDbSG9Qp3qCK1IF10cMxfkncKsiHnCWupAIXgbtinWMRuMMZzrK9CJyXvpELqaFVp6bWR5O7KPEUR12HxWEf5WflFh7nHFvUA4e/jsnvgP7rOeT3PSvRUzAWsE/VoWp7CuaC4h57CsNDniwy/CYeVWAKj1HwxyEfGshhKv5v0Sz+iS3a5CWmaVbycwOtj5bTyFXJ5Rnc2VXM25p/FfUg/ipyuldBYImXkVf4Ufxv6nZna1Ohzq6zqpOYYpeDnH1EXkuTbZtkOJPHuJC263PgtvT7Ddw3e19nB3huAAAAAElFTkSuQmCC',
-    loading: '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'
+// image data
+const svgSource = {
+    loading: '<%- include ("svg/loading.svg") %>',
+    info: '<%- include ("svg/information.svg") %>',
+    confirm: '<%- include ("svg/question_mark.svg") %>',
+    alert: '<%- include ("svg/alert.svg") %>',
+    delete: '<%- include ("svg/delete.svg") %>'
 };
 
 document.addEventListener('DOMContentLoaded', init);

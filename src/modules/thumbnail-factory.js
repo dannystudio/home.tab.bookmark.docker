@@ -176,4 +176,26 @@ const createThumbnail = async (fileProps) => {
     );
 };
 
-module.exports = {createThumbnail};
+const saveBackgroundImage = async (props) => {
+    const base64Data = props.buffer.replace(/^data:image\/\w+;base64,/, '');
+    return await sharp(Buffer.from(base64Data, 'base64'))
+    .metadata()
+    .then(async data => {
+        const fileExt = data.format ? data.format : 'jpg';
+        const destName = `background-${Date.now()}.${fileExt}`;
+        const destPath = `${props.dir}/${destName}`;
+        return await sharp(Buffer.from(base64Data, 'base64'))
+        .toFile(destPath)
+        .then(() => {
+            return {status: 200, filepath: `/background/${destName}`};
+        })
+        .catch(error => {
+            return {status: 500, message: 'Unable to apply background.'};
+        });
+    })
+    .catch(error => {
+        return {status: 500, message: 'Unable to apply background.'};
+    });
+};
+
+module.exports = {createThumbnail, saveBackgroundImage};
