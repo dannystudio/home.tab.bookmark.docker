@@ -21,7 +21,7 @@
             <div class="field-label">Group Name</div>
             <input type="text" value="" maxlength="30" class="text-field">
             <div>
-                <button class="button group-form-submit-button"></button>
+                <button class="blue-button group-form-submit-button"></button>
             </div>
         </form>
         <div class="delete-group-button-container">
@@ -43,7 +43,7 @@
             <input type="text" value="" maxlength="200" class="text-field thumbnail-custom-url">
             <div class="thumbnail-upload-container"></div> 
             <div>
-                <button class="button bookmark-form-submit-button"></button>
+                <button class="blue-button bookmark-form-submit-button"></button>
             </div>
         </form>
         <div class="delete-bookmark-button-container">
@@ -86,20 +86,26 @@
                     <div class="indent-5px">Max bookmark per row <input type="number" id="max_bookmark_per_row" value="6" maxlength="2" min="1" max="18" class="number-field"></div>
                     <div class="item-divider">&nbsp;</div>
                     <div class="indent-5px form-elements-align">                      
-                        <div>Theme</div>
-                        <input class="color-scheme-light-dark" name="color-scheme" id="color_scheme_light_dark" type="radio" value="light dark" checked>
-                        <label for="color_scheme_light_dark"> System</label>
-                        <input class="color-scheme-light" name="color-scheme" id="color_scheme_light" type="radio" value="light">
-                        <label for="color_scheme_light"> Light</label>
-                        <input class="color_scheme_dark" name="color-scheme" id="color_scheme_dark" type="radio" value="dark">
-                        <label for="color_scheme_dark"> Dark</label>
+                        Theme
+                        <div>
+                            <input class="color-scheme-light-dark" name="color-scheme" id="color_scheme_light_dark" type="radio" value="light dark" checked>
+                            <label for="color_scheme_light_dark"> System</label>
+                        </div>
+                        <div>
+                            <input class="color-scheme-light" name="color-scheme" id="color_scheme_light" type="radio" value="light">
+                            <label for="color_scheme_light"> Light</label>
+                        </div>
+                        <div>
+                            <input class="color_scheme_dark" name="color-scheme" id="color_scheme_dark" type="radio" value="dark">
+                            <label for="color_scheme_dark"> Dark</label>
+                        </div>
                     </div>
                     <div class="item-divider">&nbsp;</div>
                     <div class="indent-5px">
                         <div class="form-elements-align">
-                            <div>Background</div>
-                            <button id="apply_background" class="button settings-button">Apply</button>
-                            <button id="remove_background" class="button settings-button">Remove</button>
+                            Background
+                            <button id="apply_background" class="blue-button settings-button center">Apply</button>
+                            <button id="remove_background" class="blue-button settings-button center">Remove</button>
                         </div>
                         <div class="background-upload-container"></div>
                     </div>
@@ -112,11 +118,13 @@
                     </div>
                     <div class="item-divider">&nbsp;</div>
                     <div class="indent-5px form-elements-align">
-                        Export Data <button id="export_from_local" class="button settings-button">From Local</button> <button id="export_from_server" class="button settings-button">From Server</button>
+                        Export Data
+                        <button id="export_from_local" class="blue-button settings-button center">From Local</button>
+                        <button id="export_from_server" class="blue-button settings-button center">From Server</button>
                     </div>
                     <div class="item-divider">&nbsp;</div>
                     <div class="indent-5px form-elements-align">
-                        Restore data from server <button id="restore_from_server" class="button settings-button">Restore</button>
+                        Restore data from server <button id="restore_from_server" class="blue-button settings-button center">Restore</button>
                     </div>
                 </div>
             </div>
@@ -130,21 +138,21 @@
             <div class="message-progress-bar-fill"></div>
         </div>
         <div class="message-confirm-button-container">
-            <div class="message-confirm-button message-confirm">&#10004;</div>
-            <div class="message-confirm-button message-cancel">&#10006;</div>
+            <div class="message-confirm-button message-confirm center">&#10004;</div>
+            <div class="message-confirm-button message-cancel center">&#10006;</div>
         </div>    
     </div>   
 </div>
-<div class="app-menu-icon">&#8942;</div>
+<div class="app-menu-icon center">&#8942;</div>
 <div class="app-menu-container">
     <div class="app-menu-content" displayed="false"></div>
 </div>
 <div class="drop-area-mock">
     <div class="drop-area-container-mock">
         <div class="drop-area-content">
-            <div>Please drop a file here</div>
-            <div>OR</div>
-            <div><label class="button select-file-button" for="dropAreaField">Select a File</label></div>
+            <div class="center">Please drop a file here</div>
+            <div class="center">OR</div>
+            <div class="center"><label class="blue-button select-file-button center" for="dropAreaField">Select a File</label></div>
         </div>
     </div>
 </div>
