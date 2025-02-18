@@ -85,7 +85,7 @@ input::placeholder {
 }
 
 .group-selected {
-    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
+    background: light-dark(rgb(243, 243, 243), rgb(58, 58, 58));
 }
 
 .group-visibility-hidden {
@@ -101,7 +101,7 @@ input::placeholder {
 }
 
 .add-new-group:hover {
-    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
+    background: light-dark(rgb(243, 243, 243), rgb(58, 58, 58));
 }
 
 .bookmark-container-outer {
@@ -432,7 +432,7 @@ div[class^='settings-menu-item-'] {
     margin: 30px;
     border: 1px solid light-dark(rgb(204, 204, 204), rgb(85, 85, 85));
     border-radius: 3px;    
-    background: light-dark(rgb(255, 255, 255), rgb(40 , 40, 40));
+    background: light-dark(rgb(255, 255, 255), rgb(40, 40, 40));
     cursor: pointer;
 }
 
@@ -594,7 +594,7 @@ div[class^='settings-menu-item-'] {
 }
 
 .app-menu-icon:hover {
-    background: light-dark(rgb(243, 243, 243), rgb(58 58 58));
+    background: light-dark(rgb(243, 243, 243), rgb(58, 58, 58));
     color: light-dark(rgb(17, 17, 17), rgb(220, 220, 220));
 }
 

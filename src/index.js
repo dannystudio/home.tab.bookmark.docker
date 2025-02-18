@@ -9,8 +9,6 @@ const {createThumbnail, saveBackgroundImage} = require('./modules/thumbnail-fact
 
 // Available ENV
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
-const maxBookmarkPerRow = process.env.MAX_BOOKMARK_PER_ROW || 6;
-const openInNewTab = process.env.OPEN_IN_NEW_TAB || 'false';
 const enableBasicAuth = process.env.BASIC_AUTH || 'false';
 const username = process.env.USER_NAME || 'admin';
 const password = process.env.PASSWORD || 'admin';
@@ -78,9 +76,7 @@ app.use('/background',  express.static(backgroundDir));
 app.get('/script.js', (request, response) => {
     const vars = {
         appName: appName,
-        version: version,
-        maxBookmarkPerRow: isNaN(parseInt(maxBookmarkPerRow)) ? 6 : parseInt(maxBookmarkPerRow),
-        openInNewTab: openInNewTab == 'true' ? 1 : 0
+        version: version
     };
     response.render(path.join(__dirname, '/views/script'), vars);
 });

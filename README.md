@@ -32,11 +32,11 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * drag and drop bookmark to move to another group.
 
 #### Data
-* Bookmark data store in contain and cached in browser's local storage.
-* Import Data: Import data to local storage. Support import from browser bookmark (Netscape Bookmark File) and SpeedDials. (Only import label and url for bookmarks, no thunbmails).
-* Expprt Data: Export data from local storage.
-* Restore Data: In case any mistake , use Restore Data to restore data from container.
-* Commit Changes: To avoid any mistake, changes only applied to local storage (including importing data), use Commit Changes to commit changes to container when needed.
+* Bookmark data store in server and cached in browser.
+* Import Data: Import data to browser cache. Support import from browser bookmark (Netscape Bookmark File) and SpeedDials. (Only import label and url for bookmarks, no thunbmails).
+* Expprt Data: Export data from browser cache or from server.
+* Restore Data: In case any mistake , use Restore Data to restore data from server.
+* Commit Changes: To avoid any mistake, changes only applied to browser cache (including importing data), use Commit Changes to commit changes to server when needed.
 
 #### Protection
 * Basic authentication available as an option. (see BASIC_AUTH in ENV Variables below).
@@ -61,12 +61,6 @@ Here is an example of screenshot api from [elestio/ws-screenshot.slim](https://h
 
 Here is another example of screehshot api from [thum.io](https://www.thum.io)  
 `https://image.thum.io/get/width/256/crop/900/`
-
-#### OPEN_IN_NEW_TAB
-Bookmark is opened in the same tab by default. Set this variable to true to enable bookmark opened in new tab.
-
-#### MAX_BOOKMARK_PER_ROW
-Use this variable to change the maximum number of bookmarks per row. (default is 6 bookmarks per row).
 
 #### BASIC_AUTH
 Basic authentication is off by default, set this variable to true to enable basic authentication.

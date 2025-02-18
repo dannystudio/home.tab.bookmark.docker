@@ -1,7 +1,3 @@
-// ejs variables
-const appName='<%=appName%>';
-const version='<%=version%>';
-// end of ejs
 let homeTabData = {};
 let groupForm, bookmarkForm, dropAreaForm;
 let messageTimer;
@@ -1325,7 +1321,9 @@ const init = () => {
     }
 };
 
-// image data
+// ejs variables and includes
+const appName='<%=appName%>';
+const version='<%=version%>';
 const svgSource = {
     loading: '<%- include ("svg/loading.svg") %>',
     info: '<%- include ("svg/information.svg") %>',
@@ -1333,5 +1331,6 @@ const svgSource = {
     alert: '<%- include ("svg/alert.svg") %>',
     delete: '<%- include ("svg/delete.svg") %>'
 };
+// end of ejs
 
 document.addEventListener('DOMContentLoaded', init);

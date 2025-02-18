@@ -6,7 +6,7 @@
   "scripts": {
     "prepare": "rm -rf ./dist && mkdirp ./dist/public ./dist/modules ./dist/views ./dist/data",
     "devtest": "nodemon ./src/index.js",
-    "build": "npm run --silent prepare && cp -R ./src/public/* ./dist/public && html-minifier --input-dir ./src/public --output-dir ./dist/public --collapse-whitespace --file-ext html && uglifycss ./src/public/style.css --output ./dist/public/style.css && uglifyjs ./src/views/script.ejs --compress --mangle toplevel --warn --output ./dist/views/script.ejs && uglifyjs ./src/modules/thumbnail-factory.js --compress --mangle --warn --output ./dist/modules/thumbnail-factory.js && uglifyjs ./src/index.js --compress --mangle --warn --output ./dist/index.js",
+    "build": "npm run --silent prepare && cp -R ./src/public/* ./dist/public && cp -R ./src/views/* ./dist/views && html-minifier --input-dir ./src/public --output-dir ./dist/public --collapse-whitespace --file-ext html && uglifycss ./src/public/style.css --output ./dist/public/style.css && uglifyjs ./src/views/script.ejs --compress --mangle toplevel --warn --output ./dist/views/script.ejs && uglifyjs ./src/modules/thumbnail-factory.js --compress --mangle --warn --output ./dist/modules/thumbnail-factory.js && uglifyjs ./src/index.js --compress --mangle --warn --output ./dist/index.js",
     "buildtest": "npm run --silent build && node ./dist/index.js",
     "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run --silent build && docker build -t dannystudio/home-tab-bookmark .",
     "dockertest": "docker run -p 3000:3000 dannystudio/home-tab-bookmark",
