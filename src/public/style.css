@@ -109,6 +109,10 @@ input::placeholder {
     }
 }
 
+.group-selected {
+    background: light-dark(var(--light-item-hover-bg-color), var(--dark-item-hover-bg-color));
+}
+
 .group-visibility-hidden {
     visibility: hidden;
 }
