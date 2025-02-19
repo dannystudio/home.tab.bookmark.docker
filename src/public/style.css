@@ -274,7 +274,7 @@ input::placeholder {
 .settings-panel-inner {
     display: flex;
     width: 560px;
-    height: 432px;
+    height: 446px;
     flex-wrap: nowrap;
 }
 
@@ -311,6 +311,9 @@ div[class^='settings-menu-item-'] {
     line-height: 15px !important;
     margin-bottom: 15px;
     border-bottom: 1px dotted var(--main-border-color);
+    &::before {
+        content: '\00a0 ';
+    }
 }
 
 .indent-5px {
@@ -421,6 +424,11 @@ div[class^='settings-menu-item-'] {
         position: relative;
         top: 3px;
     }
+}
+
+.form-first-row-element {
+    border-top: 1px dotted var(--main-border-color);
+    padding-top: 15px; 
 }
 
 .field-label {
@@ -594,7 +602,7 @@ div[class^='settings-menu-item-'] {
 }
 
 .app-menu-icon {
-    position: absolute;
+    position: fixed;
     top: 0px;
     right: 0px;
     width: 40px;
@@ -644,6 +652,10 @@ div[class^='settings-menu-item-'] {
 .app-menu-divider {
     height: 1px;
     padding: 0px !important;
+}
+
+.line-height-10 {
+    line-height: 10px !important;
 }
 
 .center {
