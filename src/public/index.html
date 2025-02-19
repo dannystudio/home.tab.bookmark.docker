@@ -51,15 +51,16 @@
         </div>       
     </div>
     <div class="settings-panel">
-        <button class="form-close-button close-settings-panel">&#10006;</button>
         <div class="settings-panel-inner">
             <div class="settings-side-menu">
                 <div class="settings-panel-header">Settings</div>
                 <div class="settings-menu-item-general">General</div>
                 <div class="settings-menu-item-appearance">Appearance</div>
                 <div class="settings-menu-item-data-management">Data Management</div>
+                <div class="settings-menu-item-about">About</div>
             </div>
             <div class="settings-sessions">
+                <button class="form-close-button close-settings-panel">&#10006;</button>
                 <div class="settings-session-block settings-general">
                     <div class="settings-section-header">General</div>
                     <div class="form-elements-align">
@@ -127,6 +128,18 @@
                         Restore data from server <button id="restore_from_server" class="blue-button settings-button center">Restore</button>
                     </div>
                 </div>
+                <div class="settings-session-block settings-about">
+                    <div class="settings-section-header">About</div>
+                    <div class="app-name center"></div>
+                    <div class="app-version center"></div>
+                    <div class="center">MIT License</div>
+                    <div class="app-license">
+                        <div>Copyright 2025 DannyStudio</div>
+                        <div>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</div>
+                        <div>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</div>
+                        <div>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -159,6 +172,5 @@
 <form name="dropAreaForm">
     <input type="file" id="dropAreaField" accept="image/png, image/jpeg" class="drop-area-file-input">
 </form>
-<div class="footer"></div>
 </body>
 </html>

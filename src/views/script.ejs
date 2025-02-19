@@ -4,7 +4,7 @@ let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
 let rememberGroupIndex, openInNewTab, autoCommitChanges, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
-const settingsMenuItem = ['general', 'appearance', 'data-management'];
+const settingsMenuItem = ['general', 'appearance', 'data-management', 'about'];
 
 const qs = (selector, all = false) => {
     return (typeof selector === 'string' ? (!all ? document.querySelector(selector) : document.querySelectorAll(selector)) : selector);
@@ -1171,7 +1171,7 @@ const registSettingsEvents = () => {
     });       
 }
 
-const goToSettingSection = (section) => {
+const goToSettingSection = section => {console.log(section)
     settingsMenuItem.forEach(item => {
         item == section ? show(`.settings-${item}`, 'block') : hide(`.settings-${item}`);
     });
@@ -1306,7 +1306,8 @@ const doneInit = () => {
     [groupForm, bookmarkForm, dropAreaForm] = document.forms;
     renderHTMLElements();
     registEvents();
-    html('.footer', `${appName} v${version}`);
+    html('.app-name', appName);
+    html('.app-version', `Version: ${version}`);
     setGruopVisibility();
     setBookmarkContainer();
 };

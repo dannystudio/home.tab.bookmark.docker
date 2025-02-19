@@ -270,7 +270,7 @@ input::placeholder {
 .settings-panel-inner {
     display: flex;
     width: 560px;
-    height: 430px;
+    height: 432px;
     flex-wrap: nowrap;
 }
 
@@ -278,7 +278,7 @@ input::placeholder {
     width: 100%;
     min-height: 360px;
     border-left: 1px solid var(--main-border-color);
-    padding: 0px 10px 0px 10px;
+    padding: 0px 0px 0px 10px;
 }
 
 div[class^='settings-menu-item-'] {
@@ -640,11 +640,16 @@ div[class^='settings-menu-item-'] {
     align-items: center;      
 }
 
-.footer {
-    position: fixed;
-    bottom: 0px;
-    right: 0px;
-    margin: 10px;
-    color: var(--minor-text-color);
-    z-index: 0;
+.app-license {
+    height: 300px;
+    overflow: hidden;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    div {
+        line-height: 20px !important;
+        margin-top: 20px;
+        padding-right: 10px;
+        font-size: 13px;
+        text-align: justify;    
+    }
 }
