@@ -547,7 +547,7 @@ div[class^='settings-menu-item-'] {
     background-size: contain !important;
     background-position: center center !important;
     background-repeat: no-repeat !important;     
-    border: 6px solid var(--secondary-border-color);
+    border: 5px dashed var(--secondary-border-color);
     border-radius: 5px;
 }
 
