@@ -63,13 +63,16 @@ Here is another example of screehshot api from [thum.io](https://www.thum.io)
 `https://image.thum.io/get/width/256/crop/900/`
 
 #### BASIC_AUTH
-Basic authentication is off by default, set this variable to true to enable basic authentication.
+Basic authentication is `disabled` by default, set this variable to `always` or `whitelist` to enable basic authentication.
+
+#### BASIC_AUTH_WHITE_LIST
+When basic authentication set to `whitelist`, this variable can be used to set the white list of the host names that can skip the basic authentication. `localhost:3000` is in the white list by default, multiple host names can be set by use comma as separator.
 
 #### USER_NAME
-The default username for basic authentication is 'admin', use this variable to set your username for basic authentication.
+The default username for basic authentication is `admin`, use this variable to set your username for basic authentication.
 
 #### PASSWORD
-The default password for basic authentication is 'admin', use this variable to set your password for basic authentication.
+The default password for basic authentication is `admin`, use this variable to set your password for basic authentication.
 
 ## Volume Setting
 

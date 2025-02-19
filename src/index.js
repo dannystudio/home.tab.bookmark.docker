@@ -8,11 +8,12 @@ const fs = require('fs');
 const {createThumbnail, saveBackgroundImage} = require('./modules/thumbnail-factory');
 
 // Available ENV
+const port = process.env.PORT || 3000;
 const screenshotAPI = process.env.SCREENSHOT_API || 'false';
-const enableBasicAuth = process.env.BASIC_AUTH || 'false';
+const enableBasicAuth = process.env.BASIC_AUTH || 'disabled'; // disabled, always, whitelist
+const authWhiteList = process.env.BASIC_AUTH_WHITE_LIST ? `${process.env.BASIC_AUTH_WHITE_LIST},localhost:${port}` : `localhost:${port}`;
 const username = process.env.USER_NAME || 'admin';
 const password = process.env.PASSWORD || 'admin';
-const port = process.env.PORT || 3000;
 
 const dataRoot = path.join(__dirname, '/data');
 const dataFile = `${dataRoot}/home-tab-bookmark-data.json`;
@@ -21,7 +22,21 @@ const backgroundDir = `${dataRoot}/background`;
 const recycleBin = `${dataRoot}/.recycle`;
 
 const authentication = (request, response, next) => {
-    if (enableBasicAuth == 'false') {
+    let preceedBasicAuth = true;
+    if (enableBasicAuth == 'disabled'){
+        preceedBasicAuth = false;
+    }
+    else if (enableBasicAuth == 'whitelist') {
+        const hostName = request.get('host');
+        const whiteList = authWhiteList.split(',');
+        for (let i = 0; i < whiteList.length; i++) {
+            if (whiteList[i].trim().toLowerCase() == hostName.toLowerCase()) {
+                preceedBasicAuth = false;
+                break;
+            }
+        }
+    }
+    if (!preceedBasicAuth) {
         next();
     }
     else {
