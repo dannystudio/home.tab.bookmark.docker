@@ -267,6 +267,10 @@ input::placeholder {
     opacity: 0;
 }
 
+.settings-panel {
+    padding-left: 0px;
+}
+
 .settings-panel-inner {
     display: flex;
     width: 560px;
@@ -283,13 +287,17 @@ input::placeholder {
 
 div[class^='settings-menu-item-'] {
     line-height: 30px;
-    padding-right: 15px;
+    padding: 0px 15px 0px 10px;
     color: var(--secondary-text-color);
     white-space: nowrap;
     cursor: pointer;
     &:hover {
         color: var(--secondary-text-hover-color);
     }
+}
+
+.settings-menu-selected {
+    background-color: var(--minor-bg-hover-color);
 }
 
 .settings-session-block {
@@ -385,6 +393,10 @@ div[class^='settings-menu-item-'] {
     line-height: 24px !important;
     font-size: 20px;
     color: var(--common-blue)
+}
+
+.settings-panel-header {
+    padding-left: 10px;
 }
 
 .settings-section-header {
@@ -650,6 +662,6 @@ div[class^='settings-menu-item-'] {
         margin-top: 20px;
         padding-right: 10px;
         font-size: 13px;
-        text-align: justify;    
+        text-align: justify;
     }
 }

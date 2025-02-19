@@ -1171,11 +1171,12 @@ const registSettingsEvents = () => {
     });       
 }
 
-const goToSettingSection = section => {console.log(section)
+const goToSettingSection = section => {
     settingsMenuItem.forEach(item => {
+        item == section ? addClass(`.settings-menu-item-${item}`, 'settings-menu-selected') : removeClass(`.settings-menu-item-${item}`, 'settings-menu-selected');
         item == section ? show(`.settings-${item}`, 'block') : hide(`.settings-${item}`);
     });
-    section != 'general' && setDropArea(section == 'appearance' ? 'background' : 'import');
+    ['appearance', 'data-management'].includes(section) && setDropArea(section == 'appearance' ? 'background' : 'import');
 };
 
 const closeSettingsPanel = () => {
