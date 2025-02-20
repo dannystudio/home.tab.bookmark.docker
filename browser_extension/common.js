@@ -1,0 +1,1 @@
+const defaultTestUrl = 'http://localhost:3000';
