@@ -80,13 +80,13 @@ const recycleOldThumbnail = filename => {
     fs.existsSync(`${thumbnailDir}/${filename}`) && fs.renameSync(`${thumbnailDir}/${filename}`, `${recycleBin}/${filename}`);
 };
 
-const createAPIKey = () => {
+const createAPIKey = (len = 40) => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let token = '';
-    while (token.length < 40) {
+    while (token.length < len) {
         token = `${token}${chars.charAt(Math.floor(Math.random() * (chars.length + 1)))}`;
     }
-    return token;
+    return token.substring(0, 40);
 };
 
 const readAPIKey = () => {
