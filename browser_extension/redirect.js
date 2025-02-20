@@ -1,4 +1,4 @@
-chrome.storage.sync.get('hometabbookmarkurl', data => {
+browserObj.storage.local.get('hometabbookmarkurl', data => {
     const url = data['hometabbookmarkurl'] || defaultTestUrl;
     document.location = url;
 });
