@@ -99,7 +99,7 @@ app.get('/script.js', (request, response) => {
 app.post('/process', async (request, response) => {
     const req = request.fields;
     const action = req.action;
-    if (action == 'thumbnail') {
+    if (action == 'create-thumbnail') {
         !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
         const bookmarkUrl = req.url;
         const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'favicon';
@@ -120,7 +120,7 @@ app.post('/process', async (request, response) => {
             response.status(500).send(error.message);
         });
     }
-    else if (action == 'create-thumbnail') {
+    else if (action == 'set-background') {
         const data = JSON.parse(req.home_tab_data);
         !fs.existsSync(backgroundDir) && fs.mkdirSync(backgroundDir);
         const files = fs.readdirSync(backgroundDir);
