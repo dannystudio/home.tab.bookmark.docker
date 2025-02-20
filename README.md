@@ -51,14 +51,14 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Use image *home-tab-bookmark.tar* to create container.
 * Use `http://HOSTNAME:PORT` to access the application, `http://localhost:3000` for example.
 
-#### Browser New Tab Redirect Extension
+#### New Tab Redirect Extension
 ##### Edge / Chrome
 * Go to Extensions and select Manage Extensions.
 * Switch on Developer Mode.
 * Select Load Unpacked.
 * Navigate to the repository you have cloned and select the `browser_extension` folder, the extension should be ready for use.
 * Navigate to Home Tab Bookmark application, `http://localhost:3000`.
-* Select Home Tab Bookmark from Extensions and click Use Current Tab.
+* Select New Tab Redirect from Extensions and click Use Current Tab.
 * Or, you can input the url of the Home Tab Bookmark application manually and then click Save.
 
 ##### Firefox
@@ -67,7 +67,7 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Select Load Temporary Add-on…
 * Navigate to the repository you have cloned and select `manifest.json` from the `browser_extension` folder, the extension should be ready for use.
 * Navigate to Home Tab Bookmark application, `http://localhost:3000`.
-* Select Home Tab Bookmark from Extensions and click Use Current Tab.
+* Select New Tab Redirect from Extensions and click Use Current Tab.
 * Or, you can input the url of the Home Tab Bookmark application manually and then click Save.
 
 

@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Home Tab Redirect",
+    "name": "New Tab Redirect",
     "version": "0.0.1",
     "action": {
         "default_popup": "popup.html"
