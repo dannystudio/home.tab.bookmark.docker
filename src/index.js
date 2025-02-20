@@ -91,7 +91,6 @@ const createAPIKey = (len = 40) => {
 
 const readAPIKey = () => {
     const apikey = fs.readFileSync(apiKeyFile, {encoding: 'utf8', flag: 'r'});
-    // console.log('read=' + apikey);
     return apikey;
 }
 
@@ -115,40 +114,33 @@ app.get('/api/group', async (request, response) => {
     }
 });
 
-app.get('/api/add/group', async (request, response) => {
-    if (request.query.apikey == readAPIKey()) {
-        const data = fs.readFileSync(dataFile);
-        const dataObj = JSON.parse(data);
-        dataObj.home_tab_data.groups.push({
-            name: request.query.name,
-            bookmarks: []
-        });
-        const groups = [];
-        dataObj.home_tab_data.groups.forEach(group => groups.push(group.name));
-        fs.writeFileSync(dataFile, JSON.stringify(dataObj));
-        response.set('Content-Type', 'text/json').status(200).send({"groups": groups});
-    }
-    else {
-        response.set('Content-Type', 'text/json').status(400).send({"error": "Invalid api key."});
-    }
-});
-
 app.get('/api/add/bookmark', async (request, response) => {
     if (request.query.apikey == readAPIKey()) {
-        const data = fs.readFileSync(dataFile);
-        const dataObj = JSON.parse(data);
-        const groups = dataObj.home_tab_data.groups;
-        for (let i = 0; i < groups.length; i++) {
-            if (groups[i].name == request.query.group) {
-                groups[i].bookmarks.push({
-                    url: request.query.url,
-                    label: request.query.title
-                });
-                break;
+        const bookmarkUrl = request.query.url;
+        const thumbnailType = 'favicon';
+        const fileProps = getThumbnailProperties(bookmarkUrl, thumbnailType, bookmarkUrl);
+        await createThumbnail(fileProps)
+        .then(result => {
+            const data = fs.readFileSync(dataFile);
+            const dataObj = JSON.parse(data);
+            const groups = dataObj.home_tab_data.groups;
+            for (let i = 0; i < groups.length; i++) {
+                if (groups[i].name == request.query.group) {
+                    groups[i].bookmarks.push({
+                        url: request.query.url,
+                        label: request.query.title,
+                        thumbnail: fileProps.destName
+                    });
+                    break;
+                }
             }
-        }
-        fs.writeFileSync(dataFile, JSON.stringify(dataObj));
-        response.set('Content-Type', 'text/json').status(200).send({"result": "Succeed"});
+            fs.writeFileSync(dataFile, JSON.stringify(dataObj));
+            response.set('Content-Type', 'text/json').status(200).send({"result": "Succeed"});
+        })
+        .catch(error => {
+            console.log(`create-thumbnail error > ${error.message}`);
+            response.set('Content-Type', 'text/plain').status(500).send('Error, unable to create thumbnail.');
+        });
     }
     else {
         response.set('Content-Type', 'text/json').status(400).send({"error": "Invalid api key."});
