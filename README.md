@@ -46,10 +46,20 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Close popups including add, edit, import, and messages by press esc key.
 
 ## Installation
+#### Home Tab Bookmark Web App
 * Clone this repository.
 * Run `npm run dockersave` in terminal.
 * Use image *home-tab-bookmark.tar* to create container.
-* Install browser extension [New Tab Redirect](https://chromewebstore.google.com/detail/new-tab-redirect/icpgjfneehieebagbmdbhnlpiopdcmna?hl=en-US) and set new tab redirect to http://HOSTNAME:3000.
+* Use `http://HOSTNAME:PORT` to access the application.
+
+#### Browser New Tab Redirect Extension
+Edge / Chrome
+* Go to Extensions and select Manage Extensions
+* Switch on Developer Mode
+* Select Load Unpacked
+* Navigate to the repository you have cloned and select browser_extension folder
+* Select Home Tab Bookmark from Extensions
+* Inout the url of the Home Tab Bookmark application  `http://HOSTNAME:PORT` and click Save
 
 ## ENV Variables
 
