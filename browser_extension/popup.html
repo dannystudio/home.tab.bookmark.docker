@@ -37,8 +37,11 @@
             }
             .right {
                 display: flex;
-                justify-content: end;
-            }               
+                justify-content: space-between;
+            }
+            .long-button {
+                width: 160px;
+            }             
         </style>
     </head>
     <body>
@@ -49,7 +52,7 @@
             <input type="text" id="url" placeholder="Enter new tab url"><br/>
         </div>
         <div class="right">
-            <button id="setBtn">Save</button>
+            <button id="useCurrent" class="long-button">Use Current Tab</button><button id="setBtn">Save</button>
         </div>
         <script src="common.js"></script>
         <script src="popup.js"></script>

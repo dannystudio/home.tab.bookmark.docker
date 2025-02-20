@@ -50,16 +50,17 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Clone this repository.
 * Run `npm run dockersave` in terminal.
 * Use image *home-tab-bookmark.tar* to create container.
-* Use `http://HOSTNAME:PORT` to access the application.
+* Use `http://HOSTNAME:PORT` to access the application, `http://localhost:3000` for example.
 
 #### Browser New Tab Redirect Extension
 Edge / Chrome
-* Go to Extensions and select Manage Extensions
-* Switch on Developer Mode
-* Select Load Unpacked
-* Navigate to the repository you have cloned and select browser_extension folder
-* Select Home Tab Bookmark from Extensions
-* Inout the url of the Home Tab Bookmark application  `http://HOSTNAME:PORT` and click Save
+* Go to Extensions and select Manage Extensions.
+* Switch on Developer Mode.
+* Select Load Unpacked.
+* Navigate to the repository you have cloned and select the `browser_extension` folder, the extension should be ready for use.
+* Navigate to Home Tab Bookmark application, `http://localhost:3000`.
+* Select Home Tab Bookmark from Extensions and click Use Current Tab.
+* Or, you can input the url of the Home Tab Bookmark application manually and then click Save.
 
 ## ENV Variables
 

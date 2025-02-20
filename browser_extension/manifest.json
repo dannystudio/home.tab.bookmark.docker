@@ -5,9 +5,7 @@
     "action": {
         "default_popup": "popup.html"
     },
-    "permissions": [
-        "storage"
-    ],
+    "permissions": ["tabs", "storage"],
     "chrome_url_overrides": {
         "newtab": "redirect.html"
     }
