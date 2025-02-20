@@ -1,9 +1,12 @@
 {
     "manifest_version": 3,
-    "name": "New Tab Redirect",
+    "name": "New Tab Bookmark",
     "version": "0.0.1",
     "action": {
         "default_popup": "popup.html"
+    },
+    "options_ui": {
+        "page": "/options.html"
     },
     "permissions": ["tabs", "storage"],
     "chrome_url_overrides": {

@@ -5,7 +5,6 @@
         <title>Home</title>
         <style>
             body {
-                width: 200px;
                 margin: 10px;
             }
             body, div, input, button {
@@ -36,25 +35,34 @@
                     font-style: italic;
                 }
             }
-            .group {
-                color: rgb(137, 137, 137);
-                cursor: pointer;
-                &:hover {
-                    color: rgb(17, 17, 17);
-                }
-            }
             .right {
                 display: flex;
-                justify-content: space-between;
-            }            
+                margin: 20px 10px;
+                justify-content: end;
+            }
+            .error {
+                margin-left: 10px;
+                color: rgb(139, 30, 30);
+            }           
         </style>
     </head>
     <body>
         <div>
-            <b>Add Current Tab to...</b>
+            <b>New Tab Bookmark Host</b><span id="host_error" class="error"></span>
         </div>
-        <div id="groupContainer"></div>
+        <div>
+            <input type="text" id="host" placeholder="Enter new tab bookmark host"><br/>
+        </div>
+        <div>
+            <b>API Key</b><span id="apikey_error" class="error"></span>
+        </div>
+        <div>
+            <input type="text" id="apikey" placeholder="Enter api key"><br/>
+        </div>        
+        <div class="right">
+            <button id="saveBtn">Save</button>
+        </div>
         <script src="common.js"></script>
-        <script src="popup.js"></script>
+        <script src="options.js"></script>
     </body>
 </html>

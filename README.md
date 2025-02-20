@@ -54,19 +54,20 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * Switch on Developer Mode.
 * Select Load Unpacked.
 * Navigate to the repository you have cloned and select the `browser_extension` folder, the extension should be ready for use.
-* Navigate to Home Tab Bookmark application, `http://localhost:3000`.
-* Select New Tab Redirect from Extensions and click Use Current Tab.
-* Or, you can input the url of the Home Tab Bookmark application manually and then click Save.
+* Click Extension icon from browser meun bar and ping the Home Tab Bookmark to the menu bar.
+* Right click on Home Tab Bookmark icon and select Extension Options.
+* Enter New Tab Bookmark Host and API Key, and then click Save.
+* Now you can click Home Tab Bookmark icon from menu bar to add bookmark.
 
 ##### Firefox
 * Go to Extensions and click Gear Icon
 * Select Debug Add-ons
 * Select Load Temporary Add-on…
 * Navigate to the repository you have cloned and select `manifest.json` from the `browser_extension` folder, the extension should be ready for use.
-* Navigate to Home Tab Bookmark application, `http://localhost:3000`.
-* Select New Tab Redirect from Extensions and click Use Current Tab.
-* Or, you can input the url of the Home Tab Bookmark application manually and then click Save.
-
+* Click Extension icon from browser meun bar and ping the Home Tab Bookmark to the menu bar.
+* Right click on Home Tab Bookmark icon and select Manage Extension, then select Options
+* Enter New Tab Bookmark Host and API Key, and then click Save.
+* Now you can click Home Tab Bookmark icon from menu bar to add bookmark.
 
 ## ENV Variables
 

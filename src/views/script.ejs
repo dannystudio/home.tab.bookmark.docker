@@ -3,8 +3,8 @@ let groupForm, bookmarkForm, dropAreaForm;
 let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
-let rememberGroupIndex, openInNewTab, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
-const settingsMenuItem = ['general', 'appearance', 'data-management', 'about'];
+let apikey, rememberGroupIndex, openInNewTab, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
+const settingsMenuItem = ['general', 'appearance', 'data-management', 'api-key', 'about'];
 
 const qs = (selector, all = false) => {
     return (typeof selector === 'string' ? (!all ? document.querySelector(selector) : document.querySelectorAll(selector)) : selector);
@@ -1022,6 +1022,24 @@ const setDropArea = (type) => { // import / thumbnail / background
     show(targetSelector, 'block');
 };
 
+const getAPIKey = () => {
+    const formData = new FormData();
+    formData.append('action', 'get-api-key');
+    fetch('/process/', {
+        method: 'POST',
+        header: {'Content-Type': 'multipart/form-data'},
+        body: formData
+    })    
+    .then(resp => resp.json())
+    .then(data => {
+        apikey = data.apikey;
+        qs('.api-key-field').value = apikey;
+    })
+    .catch(error => {
+        showMessagePopup('Unable to get api key, please try again later.');
+    });    
+};
+
 const setSettings = (applyToForm = true) => {
     rememberGroupIndex = homeTabData.hasOwnProperty('remember_group_index') ? homeTabData.remember_group_index : true;
     openInNewTab = homeTabData.hasOwnProperty('open_in_new_tab') ? homeTabData.open_in_new_tab : false;
@@ -1094,6 +1112,9 @@ const goToSettingSection = section => {
     ['appearance', 'data-management'].includes(section) && setDropArea(section == 'appearance' ? 'background' : 'import');
     if (section == 'appearance') {
         html('#background_action_button', homeTabData.background_image == '' ? 'Apply' : 'Remove');
+    }
+    if (section == 'api-key' && !apikey) {
+        getAPIKey();
     }
 };
 
