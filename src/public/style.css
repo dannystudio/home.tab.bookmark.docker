@@ -274,7 +274,7 @@ input::placeholder {
 .settings-panel-inner {
     display: flex;
     width: 560px;
-    height: 446px;
+    min-height: 480px;
     flex-wrap: nowrap;
 }
 
@@ -305,6 +305,11 @@ div[class^='settings-menu-item-'] {
     div {
         line-height: 30px;
     }
+}
+
+.settings-background-buttons {
+    justify-content: end;
+    padding-top: 15px;
 }
 
 .item-divider {
@@ -442,6 +447,10 @@ div[class^='settings-menu-item-'] {
     border: 1px solid var(--main-border-color);
     background-color: var(--common-field-bg-color);
     border-radius: 3px;
+}
+
+.number-field {
+    margin: 0px; 
 }
 
 .text-field {
@@ -654,10 +663,6 @@ div[class^='settings-menu-item-'] {
     padding: 0px !important;
 }
 
-.line-height-10 {
-    line-height: 10px !important;
-}
-
 .center {
     display: flex;
     justify-content: center;
@@ -665,7 +670,7 @@ div[class^='settings-menu-item-'] {
 }
 
 .app-license {
-    height: 300px;
+    height: 336px;
     overflow: hidden;
     overflow-y: scroll;
     scrollbar-width: thin;

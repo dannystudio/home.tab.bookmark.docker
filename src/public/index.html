@@ -56,7 +56,7 @@
                 <div class="settings-panel-header">Settings</div>
                 <div class="settings-menu-item-general">General</div>
                 <div class="settings-menu-item-appearance">Appearance</div>
-                <div class="settings-menu-item-data-management">Data Management</div>
+                <div class="settings-menu-item-data-management">Import & Export</div>
                 <div class="settings-menu-item-about">About</div>
             </div>
             <div class="settings-sessions">
@@ -73,12 +73,7 @@
                         <label for="open_in_new_tab"> Open bookmark in new tab.</label>
                     </div>
                     <div class="item-divider"></div>
-                    <div class="form-elements-align">
-                        <input type="checkbox" id="auto_commit_changes">
-                        <label for="auto_commit_changes">Auto commit for any changes.</label>
-                    </div>                    
-                    <div class="item-divider"></div>
-                    <div class="indent-5px line-height-10">
+                    <div class="indent-5px">
                         Auto dismiss popup message after <input type="number" id="auto_dismiss_timeframe" value="5" maxlength="2" min="0" max="10" class="number-field"> seconds,<br/>use 0 to disable auto dismiss.
                     </div>
                 </div>
@@ -100,19 +95,18 @@
                         </div>
                     </div>
                     <div class="item-divider"></div>
-                    <div class="indent-5px">
-                        <div class="form-elements-align">
-                            Background
-                            <button id="apply_background" class="blue-button settings-button center">Apply</button>
-                            <button id="remove_background" class="blue-button settings-button center">Remove</button>
-                        </div>
-                        <div class="background-upload-container"></div>
-                    </div>
+                    <div class="indent-5px">Max bookmark per row <input type="number" id="max_bookmark_per_row" value="6" maxlength="2" min="1" max="18" class="number-field"></div>
                     <div class="item-divider"></div>
-                    <div class="indent-5px">Max bookmark per row <input type="number" id="max_bookmark_per_row" value="6" maxlength="2" min="1" max="18" class="number-field"></div>                  
+                    <div class="indent-5px">
+                        Background Image
+                        <div class="background-upload-container"></div>
+                        <div class="form-elements-align settings-background-buttons">
+                            <button id="background_action_button" class="blue-button settings-button center">Apply</button>
+                        </div>                        
+                    </div>
                 </div>
                 <div class="settings-session-block settings-data-management">
-                    <div class="settings-section-header">Data Management</div>
+                    <div class="settings-section-header">Import & Export</div>
                     <div class="indent-5px form-first-row-element">
                         Import Data
                         <div class="import-upload-container"></div>
@@ -120,12 +114,7 @@
                     <div class="item-divider"></div>
                     <div class="indent-5px form-elements-align">
                         Export Data
-                        <button id="export_from_local" class="blue-button settings-button center">From Local</button>
-                        <button id="export_from_server" class="blue-button settings-button center">From Server</button>
-                    </div>
-                    <div class="item-divider"></div>
-                    <div class="indent-5px form-elements-align">
-                        Restore data from server <button id="restore_from_server" class="blue-button settings-button center">Restore</button>
+                        <button id="export_data" class="blue-button settings-button center">Export</button>
                     </div>
                 </div>
                 <div class="settings-session-block settings-about">

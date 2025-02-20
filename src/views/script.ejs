@@ -3,7 +3,7 @@ let groupForm, bookmarkForm, dropAreaForm;
 let messageTimer;
 let forceOpenInNewTab = false;
 const editingMemo = [];  // [index, name/label, url, thumbnail]
-let rememberGroupIndex, openInNewTab, autoCommitChanges, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
+let rememberGroupIndex, openInNewTab, autoDismissTimeframe, maxBookmarkPerRow, uploadBuffer, bookmarkSpace;
 const settingsMenuItem = ['general', 'appearance', 'data-management', 'about'];
 
 const qs = (selector, all = false) => {
@@ -52,7 +52,7 @@ const setGruopVisibility = () => {
         hiddenGroups.push(addGropuObj);
     }
     else {
-        removeClass(addGropuObj, 'group-visibility-hidden')
+        removeClass(addGropuObj, 'group-visibility-hidden');
     }
     groups.forEach((group, index) => {
         const groupObj = qs(`#group${index}`);
@@ -92,9 +92,18 @@ const getFormValues = form => {
     return values;
 };
 
-const getDataFromServer = (isInit) => {
+const downloadDataFile = data => {
+    const dataString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
+    const exportDataAnchor = create('a', '', '', {
+        href: dataString,
+        download: 'home-tab-bookmark-data.json'
+    });
+    exportDataAnchor.click();
+};
+
+const getDataFromServer = event => {
     const formData = new FormData();
-    formData.append('action', 'restore');
+    formData.append('action', 'get-data');
     fetch('/process/', {
         method: 'POST',
         header: {'Content-Type': 'multipart/form-data'},
@@ -103,75 +112,46 @@ const getDataFromServer = (isInit) => {
     .then(resp => resp.json())
     .then(data => {
         if (isHomeTabBookmarkData(data.home_tab_data)) {
-            homeTabData = data.home_tab_data;
-            if (isInit) {
+            if (event) {
+                homeTabData = data.home_tab_data;
                 doneInit();
             }
             else {
-                renderGroups();
-                goToGroup(homeTabData.current_group);
-                showMessagePopup('Data restore successfully.', 'info');
+                downloadDataFile(data);
             }
         }
         else {
-            showMessagePopup('Data corrupted, try import data from local machine.');
+            showMessagePopup('Data corrupted, try import data from backup file.');
         }
     })
     .catch(error => {
         showMessagePopup('Error while retrieving data, please try again later.');
-    });    
+    });
 };
 
-const setDataToServer = (silent = false) => {
+const setDataToServer = async () => {
     if (isHomeTabBookmarkData(homeTabData)) {
         homeTabData.timestamp = Date.now();
         homeTabData.version = version;
         const formData = new FormData();
-        formData.append('action', 'commit');
+        formData.append('action', 'set-data');
         formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
-        fetch('/process/', {
+        return await fetch('/process/', {
             method: 'POST',
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
         })
-        .then(resp => {
-            resp.ok && !silent && showMessagePopup('Changes committed successfully.', 'info');
-        })
         .catch(error => {
-            !silent && showMessagePopup('Error while commit changes, please try again later.');
+            showMessagePopup('Error while retrieving data, please try again later.');
         }); 
     }
     else {
-        !silent && showMessagePopup('Data corrupted, try restore data.');
+        showMessagePopup('Data may have corrupted, please try import data from backup file.');
     }
-};
-
-const getDataFromLocal = () => {
-    const data = JSON.parse(localStorage.getItem('home-tab-data'));
-    if (isHomeTabBookmarkData(data)) {
-        homeTabData = data;
-        doneInit();
-        return true;
-    }
-    else {
-        showMessagePopup('Data corrupted, try restore data.');
-        return false;
-    }    
 };
 
 const setDataToLocal = (skipVerify = false) => {
-    const verifyResult = skipVerify ? true : isHomeTabBookmarkData(homeTabData);
-    if (verifyResult) {
-        homeTabData.timestamp = Date.now();
-        homeTabData.version = version;
-        localStorage.setItem('home-tab-data', JSON.stringify(homeTabData));
-        autoCommitChanges && setDataToServer(true);
-        return true;
-    }
-    else {
-        showMessagePopup('Data corrupted, try restore data.');
-        return false;
-    }
+
 };
 
 const addClass = (selector, ...classname) => {
@@ -270,13 +250,8 @@ const renderAppMenuContent = (hiddenGroups = []) => {
         container.append(divider);        
     }
     const settingsItem = create('div', '&#9900; Settings');
-    settingsItem.addEventListener('click', showSettingsPanel);
-    const commitChangesItem = create('div', '&#9900; Commit Changes');
-    commitChangesItem.addEventListener('click', () => {
-        setDataToServer();
-        closeAppMenu();
-    });    
-    container.append(settingsItem, commitChangesItem);
+    settingsItem.addEventListener('click', showSettingsPanel);    
+    container.append(settingsItem);
 };
 
 const renderGroups = () => {
@@ -294,8 +269,8 @@ const renderGroups = () => {
             closeAppMenu();
             goToGroup(groupIndex);
         });
-        groupItem.addEventListener('dragstart', setGroupDrag);        
-        groupItem.addEventListener('dragend', moveGroup);             
+        groupItem.addEventListener('dragstart', setGroupDrag);
+        groupItem.addEventListener('dragend', moveGroup);
         groupItem.addEventListener('contextmenu', editGroup);
         container.append(groupItem);
     });
@@ -349,7 +324,7 @@ const goToGroup = (group = 0) => {
     addClass(`#group${group}`, 'group-selected');
     renderBookmarks(homeTabData.groups[group].bookmarks);
     homeTabData.current_group = group;
-    setDataToLocal();
+    setDataToServer();
 };
 
 const closeGroupForm = () => {
@@ -418,10 +393,8 @@ const moveGroup = event => {
     currentGroup = getGroupIndexByName(newGroups, currentGroupName);
     homeTabData.current_group = currentGroup;
     homeTabData.groups = newGroups;
-    if (setDataToLocal()) {
-        renderGroups();
-        goToGroup(currentGroup);
-    }
+    renderGroups();
+    goToGroup(currentGroup);
 };
 
 const editGroup = event => {
@@ -472,12 +445,10 @@ const submitGroupForm = () => {
             else {
                 homeTabData.groups[groupIndex].name = groupName;
             }
-            if (setDataToLocal()) {
-                renderGroups();
-                goToGroup(groupIndex);
-                setGruopVisibility();
-                closeGroupForm();
-            }
+            renderGroups();
+            goToGroup(groupIndex);
+            setGruopVisibility();
+            closeGroupForm();
         }
         else {
             showMessagePopup(`&#34;${groupName}&#34; already exist, please use another name.`);
@@ -602,9 +573,8 @@ const moveBookmark = event => {
     }
     if (isMoveToGroup || newBookmarks.length > 0) {
         homeTabData.groups[currentGroup].bookmarks = newBookmarks;
-        if (setDataToLocal()) {
-            renderBookmarks(newBookmarks);
-        }
+        renderBookmarks(newBookmarks);
+        setDataToServer();
     }
 };
 
@@ -696,7 +666,7 @@ const submitBookmarkForm = () => {
                     shouldReloadThumbnail = false;
                 }
             }
-            const updateBookmark = (filename) => {
+            const updateBookmark = filename => {
                 const bookmarks = homeTabData.groups[currentGroup].bookmarks;
                 let newIndex;
                 if (bookmarkIndex == -1) {
@@ -709,10 +679,8 @@ const submitBookmarkForm = () => {
                 if (filename) {
                     bookmarks[newIndex].thumbnail = filename;
                 }
-                if (setDataToLocal()) {
-                    goToGroup(currentGroup); 
-                    closeBookmarkForm();
-                }
+                goToGroup(currentGroup); 
+                closeBookmarkForm();
             };
             if (shouldReloadThumbnail) {
                 html('.bookmark-form-submit-button', svgSource.loading);
@@ -720,7 +688,7 @@ const submitBookmarkForm = () => {
                 const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
                 const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
                 const formData = new FormData();
-                formData.append('action', 'thumbnail');
+                formData.append('action', 'create-thumbnail');
                 formData.append('url', bookmarkUrl);
                 formData.append('thumbnail_type', bookmarkThumbnailType);
                 formData.append('thumbnail_url', thumbnailSourceUrl);
@@ -759,23 +727,19 @@ const preceedDeleteItem = () => {
     const [itemIndex, , , bookmarkThumbnail] = editingMemo;
     const isGroup = editingMemo.length == 2;
     if (isGroup) {
-        const groupHolder = homeTabData.groups.filter((group, index) => {
-            return index != itemIndex;
-        });
+        const groupHolder = homeTabData.groups.filter((group, index) => index != itemIndex);
         homeTabData.groups = groupHolder;
         itemIndex == currentGroup && (currentGroup = 0);
         itemIndex < currentGroup && (currentGroup = currentGroup - 1);
         homeTabData.current_group = currentGroup;
-        if (setDataToLocal()) {
-            renderGroups();
-            goToGroup(currentGroup);
-            closeGroupForm();
-            closeMessagePopup();
-        }
+        renderGroups();
+        goToGroup(currentGroup);
+        closeGroupForm();
+        closeMessagePopup();
     }
     else {
         const formData = new FormData();
-        formData.append('action', 'delete');
+        formData.append('action', 'delete-bookmark');
         formData.append('thumbnail_delete', bookmarkThumbnail);
         fetch('/process/', {
             method: 'POST',
@@ -784,15 +748,11 @@ const preceedDeleteItem = () => {
         })               
         .then(resp => {
             if (resp.ok) {
-                const bookmarkHolder = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => {
-                    return index != itemIndex;
-                });
+                const bookmarkHolder = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => index != itemIndex);
                 homeTabData.groups[currentGroup].bookmarks = bookmarkHolder;
-                if (setDataToLocal()) {
-                    goToGroup(currentGroup);
-                    closeBookmarkForm();
-                    closeMessagePopup();                    
-                }
+                goToGroup(currentGroup);
+                closeBookmarkForm();
+                closeMessagePopup();
             }
         })
         .catch(error => {
@@ -907,7 +867,7 @@ const importData = files => {
     const uploadFile = files[0];    // only handle the first file
     const dataType = uploadFile.type.split('/')[1];
     const reader = new FileReader();
-    reader.onload = event => {
+    reader.onload = async event => {
         try {
             const fileContent = event.target.result;
             const importedData = dataType == 'json' ? JSON.parse(fileContent) : fileContent;
@@ -917,7 +877,6 @@ const importData = files => {
             if (isNetscapeBookmark || isSpeedDials || isHomeTabBookmark) {
                 homeTabData = isNetscapeBookmark ? convertBrowserData(importedData) :
                     (isSpeedDials ? convertSpeedDialsData(importedData) : importedData.home_tab_data);
-                setDataToLocal(true);
                 renderGroups();
                 goToGroup(homeTabData.current_group);
                 showMessagePopup('Data import successfully.', 'info');
@@ -937,85 +896,53 @@ const initImportUploader = () => {
     setDropArea('import');
 };
 
-const downloadDataFile = data => {
-    const stringifyData = data ? JSON.stringify(data) : `{"home_tab_data":${JSON.stringify(homeTabData)}}`;
-    const dataString = 'data:text/json;charset=utf-8,' + encodeURIComponent(stringifyData);
-    const exportDataAnchor = create('a', '', '', {
-        href: dataString,
-        download: 'home-tab-bookmark-data.json'
-    });
-    exportDataAnchor.click();
-};
-
-const exportFromLocal = () => {
-    downloadDataFile();  
-};
-
-const exportFromServer = () => {
+const applyBackground = (type = 'apply') => {
+    if (type == 'apply' && typeof uploadBuffer !== 'string') {
+        showMessagePopup('Please select a file to upload.');
+        return false;
+    }
+    html('#background_action_button', svgSource.loading);
+    qs('#background_action_button').disabled = true;
     const formData = new FormData();
-    formData.append('action', 'restore');
+    formData.append('action', 'set-background');
+    formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
+    type == 'apply' && formData.append('upload_buffer', uploadBuffer);
     fetch('/process/', {
         method: 'POST',
         header: {'Content-Type': 'multipart/form-data'},
         body: formData
-    })    
+    })
     .then(resp => resp.json())
     .then(data => {
-        if (isHomeTabBookmarkData(data.home_tab_data)) {
-            downloadDataFile(data);
+        homeTabData = data.home_tab_data;
+        if (homeTabData.hasOwnProperty('background_image')) {
+            document.body.style.backgroundImage = `url(${homeTabData.background_image})`;
+            showMessagePopup(`Background image ${type == 'apply' ? 'applied' : 'removed'}.`, 'info');
+            html('#background_action_button', type == 'apply' ? 'Remove' : 'Apply');
+            qs('#background_action_button').disabled = false;
+            cleanUploadBuffer();
         }
-        else {
-            showMessagePopup('Data corrupted, try import data from local machine.');
-        }
-    })
-    .catch(error => {
-        showMessagePopup('Error while retrieving data, please try again later.');
-    });  
+    });
 };
 
 const preceedRemoveBackground = () => {
-    document.body.style.backgroundImage = '';
     qs('.drop-area-container').style.backgroundImage = '';
     homeTabData.background_image = '';
-    setDataToLocal(true);
+    applyBackground('remove');
     closeMessagePopup();
 };
 
 const removeBackground = () => {
-    showMessagePopup('Do you want to remvoe background image?', 'confirm', {
+    showMessagePopup('Do you want to remove background image?', 'confirm', {
         confirmed: preceedRemoveBackground,
         cancelled: closeMessagePopup
     });
 };
 
-const applyBackground = () => {
-    if (typeof uploadBuffer !== 'string') {
-        showMessagePopup('Please select a file to upload.');
-        return false;
-    }
-    html('#apply_background', svgSource.loading);
-    qs('#apply_background').disabled = true;
-    const formData = new FormData();
-    formData.append('action', 'background');
-    formData.append('upload_buffer', uploadBuffer);
-    fetch('/process/', {
-        method: 'POST',
-        header: {'Content-Type': 'multipart/form-data'},
-        body: formData
-    })
-    .then(resp => resp.json())
-    .then(data => {
-        if (data.filepath) {
-            document.body.style.backgroundImage = `url(${data.filepath})`;
-            showMessagePopup('Background image applied.', 'info');
-            html('#apply_background', 'Apply');
-            qs('#apply_background').disabled = false;
-            homeTabData.background_image = data.filepath;
-            setDataToLocal(true);
-            cleanUploadBuffer();
-        }
-    });
-};
+const applyBackgroundChanges = () => {
+    const type = qs('#background_action_button').innerHTML;
+    type == 'Apply' ? applyBackground() : removeBackground();
+}
 
 const previewImage = files => {
     let reader = new FileReader();
@@ -1066,7 +993,7 @@ const setDropArea = (type) => { // import / thumbnail / background
         'upload-type': type
     });
     const dropArea = qs('.drop-area-container');
-    qs('.drop-area-container').style.backgroundImage = `url(${homeTabData.background_image})`;
+    qs('.drop-area-container').style.backgroundImage = type == 'background' ? `url(${homeTabData.background_image})` : '';
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
         dropArea.addEventListener(evt, event => {
             event.preventDefault();
@@ -1098,7 +1025,6 @@ const setDropArea = (type) => { // import / thumbnail / background
 const setSettings = (applyToForm = true) => {
     rememberGroupIndex = homeTabData.hasOwnProperty('remember_group_index') ? homeTabData.remember_group_index : true;
     openInNewTab = homeTabData.hasOwnProperty('open_in_new_tab') ? homeTabData.open_in_new_tab : false;
-    autoCommitChanges = homeTabData.hasOwnProperty('auto_commit_changes') ? homeTabData.auto_commit_changes : false;
     autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 5;
     maxBookmarkPerRow = homeTabData.hasOwnProperty('max_bookmark_per_row') ? parseInt(homeTabData.max_bookmark_per_row) : 6;
     const appBackgroundImage = homeTabData.hasOwnProperty('background_image') ? homeTabData.background_image : '';
@@ -1107,7 +1033,6 @@ const setSettings = (applyToForm = true) => {
     if (applyToForm) {
         qs('#remember_group_index').checked = rememberGroupIndex;
         qs('#open_in_new_tab').checked = openInNewTab;
-        qs('#auto_commit_changes').checked = autoCommitChanges;
         qs('#auto_dismiss_timeframe').value = autoDismissTimeframe;
         qs('#max_bookmark_per_row').value = maxBookmarkPerRow;
         qs(`#color_scheme_${colorScheme}`).checked = true;
@@ -1118,14 +1043,13 @@ const setSettings = (applyToForm = true) => {
 const saveSettings = (id, ...value) => {
     const [val] = value;
     if (id.match(/(color_scheme_)/) != null) {
-        console.log(val)
         homeTabData.color_scheme = id.replace(/color_scheme_/, '');
     }
-    if (['remember_group_index', 'max_bookmark_per_row', 'open_in_new_tab', 'auto_commit_changes', 'auto_dismiss_timeframe'].indexOf(id) != -1) {
+    if (['remember_group_index', 'max_bookmark_per_row', 'open_in_new_tab', 'auto_dismiss_timeframe'].indexOf(id) != -1) {
         homeTabData[id] = val;
     }
     setSettings(false);
-    setDataToLocal(true);
+    setDataToServer();
 };
 
 const registSettingsEvents = () => {
@@ -1149,21 +1073,12 @@ const registSettingsEvents = () => {
         obj.addEventListener('click', event => {
             const objId = event.target.id;
             switch(event.target.id) {
-                case 'restore_from_server':
+                case 'export_data':
                     getDataFromServer();
                     break;
-                case 'export_from_local':
-                    exportFromLocal();
-                    break;
-                case 'export_from_server':
-                    exportFromServer();
-                    break;
-                case 'apply_background':
-                    applyBackground();
-                    break;
-                case 'remove_background':
-                    removeBackground();
-                    break;                    
+                case 'background_action_button':
+                    applyBackgroundChanges();
+                    break;                   
                 default:
                     return false;
             }
@@ -1177,6 +1092,9 @@ const goToSettingSection = section => {
         item == section ? show(`.settings-${item}`, 'block') : hide(`.settings-${item}`);
     });
     ['appearance', 'data-management'].includes(section) && setDropArea(section == 'appearance' ? 'background' : 'import');
+    if (section == 'appearance') {
+        html('#background_action_button', homeTabData.background_image == '' ? 'Apply' : 'Remove');
+    }
 };
 
 const closeSettingsPanel = () => {
@@ -1250,6 +1168,10 @@ const renderHTMLElements = () => {
     });
 };
 
+const registElementPbjects = () => {
+    [groupForm, bookmarkForm, dropAreaForm] = document.forms;
+};
+
 const registEvents = () => {
     // regist document events
     ['contextmenu', 'dragover', 'dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => document.addEventListener(evt, event => event.preventDefault()));
@@ -1302,25 +1224,14 @@ const doneInit = () => {
     setSettings();
     renderGroups();
     goToGroup(rememberGroupIndex ? homeTabData.current_group : 0);
-    goToGroup(homeTabData.current_group);
     setBookmarkSpace();
-    [groupForm, bookmarkForm, dropAreaForm] = document.forms;
     renderHTMLElements();
+    registElementPbjects();
     registEvents();
     html('.app-name', appName);
     html('.app-version', `Version: ${version}`);
     setGruopVisibility();
     setBookmarkContainer();
-};
-
-const init = () => {
-    if (localStorage) {
-        renderAppMenuContent();
-        !localStorage.getItem('home-tab-data') ? getDataFromServer(true) : getDataFromLocal(true);
-    }
-    else {
-        showMessagePopup('Sorry, your browser does not support this Appp.');
-    }
 };
 
 // ejs variables and includes
@@ -1335,4 +1246,4 @@ const svgSource = {
 };
 // end of ejs
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', getDataFromServer);

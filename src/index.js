@@ -120,26 +120,34 @@ app.post('/process', async (request, response) => {
             response.status(500).send(error.message);
         });
     }
-    else if (action == 'background') {
+    else if (action == 'create-thumbnail') {
+        const data = JSON.parse(req.home_tab_data);
         !fs.existsSync(backgroundDir) && fs.mkdirSync(backgroundDir);
         const files = fs.readdirSync(backgroundDir);
         for (const file of files) {
             const filePath = path.join(backgroundDir, file);
             fs.unlinkSync(filePath);
         }
-        await saveBackgroundImage({
-            dir: backgroundDir,
-            buffer: req.upload_buffer
-        })
-        .then(result => {
-            response.set('Content-Type', 'text/plain').status(result.status).send(JSON.stringify(result));
-        })
-        .catch(error => {
+        let result = {status: 200};
+        if (req.upload_buffer) {
+            result = await saveBackgroundImage({
+                dir: backgroundDir,
+                buffer: req.upload_buffer
+            });
+        }
+        if (result.status == 200) {
+            if (result.filepath) {
+                data.home_tab_data.background_image = result.filepath;
+            }
+            fs.writeFileSync(dataFile, JSON.stringify(data));
+            response.set('Content-Type', 'text/json').status(result.status).send(data);
+        }
+        else {
             console.log(error.message);
-            response.status(500).send(error.message);
-        });
+            response.status(result.status).send(result.message);
+        }
     }
-    else if (action == 'delete') {
+    else if (action == 'delete-bookmark') {
         try {
             recycleOldThumbnail(req.thumbnail_delete);
             response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
@@ -149,7 +157,7 @@ app.post('/process', async (request, response) => {
             response.status(500).send(error.message);
         }
     }
-    else if (action == 'restore') {
+    else if (action == 'get-data') {
         if (fs.existsSync(dataFile)) {
             fs.readFile(dataFile, async (error, data) => {
                 const dataObj = JSON.parse(data);
@@ -171,11 +179,11 @@ app.post('/process', async (request, response) => {
             });
         }
     }    
-    else if (action == 'commit') {
+    else if (action == 'set-data') {
         try {
             fs.writeFileSync(dataFile, req.home_tab_data);
             fs.existsSync(recycleBin) && fs.rmSync(recycleBin, {recursive: true, force: true});
-            response.set('content-type', 'text/plain').status(200).send(JSON.stringify(req.home_tab_data)); 
+            response.set('content-type', 'text/json').status(200).send(req.home_tab_data);
         }
         catch (error) {
             response.status(500).send('Error, Data commit error.');

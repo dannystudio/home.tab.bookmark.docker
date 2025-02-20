@@ -30,19 +30,16 @@ Selfhosted SpeedDial style bookmark for browser home tab.
 * drag and drop bookmark to change the position of bookmark.
 * drag and drop bookmark to move to another group.
 
-#### Data
-* Bookmark data store in server and cached in browser.
-* Import Data: Import data to browser cache. Support import from browser bookmark (Netscape Bookmark File) and SpeedDials. (Only import label and url for bookmarks, no thunbmails).
-* Expprt Data: Export data from browser cache or from server.
-* Restore Data: In case any mistake , use Restore Data to restore data from server.
-* Commit Changes: To avoid any mistake, changes only applied to browser cache (including importing data), use Commit Changes to commit changes to server when needed.
+#### Import & Export
+* Support import bookmarks (or favories) from browser (Netscape Bookmark File) and SpeedDials. (Only import label and url for bookmarks, no thunbmails).
+* Expprt Data: Export data to local for backup (no thumbnail).
 
 #### Protection
 * Basic authentication available as an option. (see BASIC_AUTH in ENV Variables below).
 
 #### Keyboard Intergration
-* Force to open bookmark in new tab by holding shift key when click on bookmark.
-* Close popups including add, edit, import, and messages by press esc key.
+* Force to open bookmark in new tab by holding Shift key when click on bookmark.
+* Close popups including add, edit, import, and messages by press Esc key.
 
 ## Installation
 #### Home Tab Bookmark Web App
