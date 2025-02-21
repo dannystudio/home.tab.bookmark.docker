@@ -335,6 +335,7 @@ const showGroupForm = () => {
     show('.popup-mask');
     setTimeout(() => {
         addClass('.group-form', 'form-container-show');
+        groupForm.elements[1].focus();
     }, 100);   
     show('.group-form', 'block');
 };
@@ -470,6 +471,7 @@ const showBookmarkForm = () => {
     show('.popup-mask');
     setTimeout(() => {
         addClass('.bookmark-form', 'form-container-show');
+        bookmarkForm.elements[1].focus();
     }, 100);
     show('.bookmark-form', 'block');
 };
@@ -579,14 +581,15 @@ const editBookmark = (bookmark, bookmarkIndex) => {
     ]);
     show('.delete-bookmark-button-container');
     editingMemo.push(bookmarkIndex, bookmarkLabel, bookmarkUrl, bookmarkThumbnail);
-    switchReloadThumbnailType();
+    switchThumbnailType();
     showBookmarkForm();
     return false;
 };
 
 const addBookmark = () => {
     setValue('.bookmark-form-index', -1);
-    switchReloadThumbnailType('favicon');
+    qs('#thumbnail_option_favicon').click();
+
     showBookmarkForm();
 };
 
@@ -594,14 +597,8 @@ const initThumbnailUploader = () => {
     setDropArea('thumbnail')
 };
 
-const switchReloadThumbnailType = (type = '') => {
+const switchThumbnailType = (type = '') => {
     uploadBuffer = undefined;
-    const buttons = qs('.thumbnail-options button', true);
-    buttons.forEach(elem => {
-        elem.innerText.toLowerCase() == type ?
-        addClass(elem, 'thumbnail-type-selected') :
-        removeClass(elem, 'thumbnail-type-selected');
-    });
     if (type == '') {
         hide('.thumbnail-custom-url', '.thumbnail-upload-container');
         removeClass('.bookmark-form', 'bookmark-form-small-expand', 'bookmark-form-full-expand');
@@ -1142,12 +1139,20 @@ const renderHTMLElements = () => {
     // thumbnail option buttons
     const buttonContainer = qs('.thumbnail-options');
     ['favicon', 'screenshot', 'upload'].forEach(btn => {
-        const button = create('button', `${btn.charAt(0).toUpperCase()}${btn.slice(1)}`);
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            switchReloadThumbnailType(btn);
+        const div = create('div');
+        const opt = create('input', '', '', {
+            type: 'radio',
+            name: 'thumbnail_options',
+            id: `thumbnail_option_${btn}`
         });
-        buttonContainer.append(button);
+        const label = create('label', `${btn.charAt(0).toUpperCase()}${btn.slice(1)}`, '', {
+            for: `thumbnail_option_${btn}`
+        });
+        opt.addEventListener('click', (event) => {
+            switchThumbnailType(btn);
+        });
+        div.append(opt, label);
+        buttonContainer.append(div);
     });
     // delete button
     ['bookmark', 'group'].forEach(item => {
