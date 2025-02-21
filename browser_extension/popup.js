@@ -10,12 +10,15 @@ const addToGroup = async event => {
         fetch(`${data.hostName}/api/add/bookmark?apikey=${data.apiKey}&group=${groupName}&url=${url}&title=${title}`)
         .then(resp => resp.json())
         .then(data => {
-            groupContainer.innerHTML = `Tab saved in ${groupName}`;
+            groupContainer.innerHTML = data.status == 200 ? `Tab saved in ${groupName}` : data.message;
             setTimeout(() => {
                 window.close();
             }, 5000);
         })
-        .catch(error => groupContainer.innerHTML = error.message);
+        .catch(error => {
+            console.log(`api > add to group error: ${error.message}`);
+            groupContainer.innerHTML = 'Unable to add bookmark, please try again later.';
+        });
     }
 };
 
@@ -34,12 +37,18 @@ const getGroups = async () => {
                     groupContainer.append(div);
                 });
             }
+            else {
+                groupContainer.innerHTML = data.message;
+            }
         })
-        .catch(error => groupContainer.innerHTML = 'Unable to get data, please try again later.');
+        .catch(error => {
+            console.log(`api > get group error: ${error.message}`);
+            groupContainer.innerHTML = 'Unable to retrieve data, please try again later.';
+        });
     }
     else {
         groupContainer.innerHTML = 'Please set up Host and API Key in extension options.';
     }
 };
 
-getGroups();
+document.addEventListener('DOMContentLoaded', getGroups);

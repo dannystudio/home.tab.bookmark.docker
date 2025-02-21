@@ -21,7 +21,6 @@ const dataFile = `${dataRoot}/home-tab-bookmark-data.json`;
 const apiKeyFile = `${dataRoot}/key`;
 const thumbnailDir = `${dataRoot}/thumbnail`;
 const backgroundDir = `${dataRoot}/background`;
-const recycleBin = `${dataRoot}/.recycle`;
 
 const authentication = (request, response, next) => {
     let preceedBasicAuth = true;
@@ -38,15 +37,18 @@ const authentication = (request, response, next) => {
             }
         }
     }
+    const unAuthenticated = () => {
+        const error = new Error('You are not authenticated!');
+        response.set('WWW-Authenticate', 'Basic').status(401).send(error.message);
+        return next(error);
+    }
     if (!preceedBasicAuth) {
         next();
     }
     else {
         const authheader = request.headers.authorization;
         if (!authheader) {
-            const error = new Error('You are not authenticated!');
-            response.set('WWW-Authenticate', 'Basic').status(401).send(error.message);
-            return next(error);          
+            return unAuthenticated();
         }
         const auth = new Buffer.from(authheader.split(' ')[1], 'base64').toString().split(':');
         const user = auth[0];
@@ -54,19 +56,13 @@ const authentication = (request, response, next) => {
         if (user == username && pass == password) {
             next();
         } else {
-            const error = new Error('You are not authenticated!');
-            response.set('WWW-Authenticate', 'Basic').status(401).send(error.message);
-            return next(error);            
+            return unAuthenticated();
         }
     }
 };
 
-const parseUrlParts = address => {
-    return url.parse(address, true);
-};
-
 const getThumbnailProperties = (bookmarkUrl, thumbnailType, thumbnailUrl) => {
-    const urlParts = parseUrlParts(bookmarkUrl);
+    const urlParts = url.parse(bookmarkUrl, true);
     const prefix = urlParts.hostname;
     !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
     const originUrl = prefix;
@@ -75,9 +71,8 @@ const getThumbnailProperties = (bookmarkUrl, thumbnailType, thumbnailUrl) => {
     return {originUrl, thumbnailType, thumbnailUrl, destName, destPath, screenshotAPI};
 };
 
-const recycleOldThumbnail = filename => {
-    !fs.existsSync(recycleBin) && fs.mkdirSync(recycleBin);
-    fs.existsSync(`${thumbnailDir}/${filename}`) && fs.renameSync(`${thumbnailDir}/${filename}`, `${recycleBin}/${filename}`);
+const deleteThumbnail = filename => {
+    fs.existsSync(`${thumbnailDir}/${filename}`) && fs.rmSync(`${thumbnailDir}/${filename}`);
 };
 
 const createAPIKey = (len = 40) => {
@@ -86,7 +81,7 @@ const createAPIKey = (len = 40) => {
     while (token.length < len) {
         token = `${token}${chars.charAt(Math.floor(Math.random() * (chars.length + 1)))}`;
     }
-    return token.substring(0, 40);
+    return token;
 };
 
 const readAPIKey = () => {
@@ -96,7 +91,7 @@ const readAPIKey = () => {
 
 const app = express();
 app.set('view engine', 'ejs');
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(formidable());
@@ -109,9 +104,7 @@ app.get('/api/group', async (request, response) => {
         dataObj.home_tab_data.groups.forEach(group => groups.push(group.name));
         response.set('Content-Type', 'text/json').status(200).send({"groups": groups});
     }
-    else {
-        response.set('Content-Type', 'text/json').status(400).send({"error": "Invalid api key."});
-    }
+    else response.set('Content-Type', 'text/json').status(401).send({"message":"Invalid api key."});
 });
 
 app.get('/api/add/bookmark', async (request, response) => {
@@ -135,16 +128,14 @@ app.get('/api/add/bookmark', async (request, response) => {
                 }
             }
             fs.writeFileSync(dataFile, JSON.stringify(dataObj));
-            response.set('Content-Type', 'text/json').status(200).send({"result": "Succeed"});
+            response.set('Content-Type', 'text/json').status(result.status).send(result);
         })
         .catch(error => {
-            console.log(`create-thumbnail error > ${error.message}`);
-            response.set('Content-Type', 'text/plain').status(500).send('Error, unable to create thumbnail.');
+            console.log(`api create thumbnail error: ${error.message}`);
+            response.set('Content-Type', 'text/json').status(500).send({"message":"Error, unable to create thumbnail."});
         });
     }
-    else {
-        response.set('Content-Type', 'text/json').status(400).send({"error": "Invalid api key."});
-    }    
+    else response.set('Content-Type', 'text/json').status(401).send({"message":"Invalid api key."});
 });
 
 app.use(authentication);
@@ -160,113 +151,114 @@ app.get('/script.js', (request, response) => {
     response.render(path.join(__dirname, '/views/script'), vars);
 });
 
-app.post('/process', async (request, response) => {
+app.post('/create-thumbnail', async (request, response) => {
     const req = request.fields;
-    const action = req.action;
-    if (action == 'create-thumbnail') {
-        !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
-        const bookmarkUrl = req.url;
-        const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'favicon';
-        const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
-        const fileProps = getThumbnailProperties(bookmarkUrl, thumbnailType, thumbnailUrl);
-        if (thumbnailType == 'upload' && req.upload_buffer) {
-            fileProps.uploadBuffer = req.upload_buffer;
-        }
-        await createThumbnail(fileProps)
-        .then(result => {
-            if (result.status == 200 && req.thumbnail_delete) {
-                recycleOldThumbnail(req.thumbnail_delete);
-            }
-            response.set('Content-Type', 'text/json').status(result.status).send(result);
-        })
-        .catch(error => {
-            console.log(`create-thumbnail error > ${error.message}`);
-            response.set('Content-Type', 'text/plain').status(500).send('Error, unable to create thumbnail.');
-        });
+    !fs.existsSync(thumbnailDir) && fs.mkdirSync(thumbnailDir);
+    const bookmarkUrl = req.url;
+    const thumbnailType = req.thumbnail_type ? req.thumbnail_type : 'favicon';
+    const thumbnailUrl = req.thumbnail_url && req.thumbnail_url != ''? req.thumbnail_url : bookmarkUrl;
+    const fileProps = getThumbnailProperties(bookmarkUrl, thumbnailType, thumbnailUrl);
+    if (thumbnailType == 'upload' && req.upload_buffer) {
+        fileProps.uploadBuffer = req.upload_buffer;
     }
-    else if (action == 'set-background') {
-        const data = JSON.parse(req.home_tab_data);
-        fs.rmSync(backgroundDir, {recursive: true, force: true});
-        fs.mkdirSync(backgroundDir);
-        try {
-            let result = {status: 200};
-            if (req.upload_buffer) {
-                result = await saveBackgroundImage({
-                    dir: backgroundDir,
-                    buffer: req.upload_buffer
-                });
-            }
-            if (result.filepath) {
-                data.home_tab_data.background_image = result.filepath;
-            }
+    await createThumbnail(fileProps)
+    .then(result => {
+        if (result.status == 200 && req.thumbnail_delete) {
+            deleteThumbnail(req.thumbnail_delete);
+        }
+        response.set('Content-Type', 'text/json').status(result.status).send(result);
+    })
+    .catch(error => {
+        console.log(`create-thumbnail error > ${error.message}`);
+        response.set('Content-Type', 'text/plain').status(500).send('Error, unable to create thumbnail.');
+    });    
+});
+
+app.post('/set-background', async (request, response) => {
+    const req = request.fields;
+    const data = JSON.parse(req.home_tab_data);
+    fs.rmSync(backgroundDir, {recursive: true, force: true});
+    fs.mkdirSync(backgroundDir);
+    try {
+        const result = await saveBackgroundImage({
+            dir: backgroundDir,
+            buffer: req.upload_buffer
+        });
+        if (result.filepath) {
+            data.home_tab_data.background_image = result.filepath;
             fs.writeFileSync(dataFile, JSON.stringify(data));
             response.set('Content-Type', 'text/json').status(result.status).send(data);
         }
-        catch (error) {
-            console.log(`set-background error > ${error.message}`);
-            response.set('Content-Type', 'text/plain').status(500).send('Error, unable to set background.');
-        }
+        else response.set('Content-Type', 'text/json').status(result.status).send(result);
     }
-    else if (action == 'delete-bookmark') {
-        try {
-            recycleOldThumbnail(req.thumbnail_delete);
-            response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
-        }
-        catch (error) {
-            console.log(`delete-bookmark error > ${error.message}`);
-            response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
-        }
+    catch (error) {
+        console.log(`set-background error > ${error.message}`);
+        response.set('Content-Type', 'text/json').status(500).send({message:`Error, unable to ${req.upload_buffer ? 'set' : 'remove'} background.`});
+    }   
+});
+
+app.post('/delete-thumbnail', async (request, response) => {
+    const req = request.fields;
+    try {
+        deleteThumbnail(req.thumbnail_delete);
+        response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
     }
-    else if (action == 'get-data') {
-        if (fs.existsSync(dataFile)) {
-            fs.readFile(dataFile, async (error, data) => {
-                const dataObj = JSON.parse(data);
-                await dataObj.home_tab_data.groups.forEach(group => {
-                    group.bookmarks.forEach(bookmark => {
-                        const filename = bookmark.thumbnail;
-                        if (!fs.existsSync(`${thumbnailDir}/${filename}`)) {
-                            fs.existsSync(`${recycleBin}/${filename}`) && fs.renameSync(`${recycleBin}/${filename}`, `${thumbnailDir}/${filename}`);
-                        }
-                    })
-                });
-                response.set('Content-Type', 'text/json').status(200).send(data);
-            });
+    catch (error) {
+        console.log(`delete-thumbnail error > ${error.message}`);
+        response.set('Content-Type', 'text/plain').status(200).send(req.thumbnail_delete);
+    }  
+});
+
+app.post('/set-data', async (request, response) => {
+    const req = request.fields;
+    try {
+        fs.writeFileSync(dataFile, req.home_tab_data);
+        response.set('content-type', 'text/json').status(200).send(req.home_tab_data);
+    }
+    catch (error) {
+        console.log(`set-data error > ${error.message}`);
+        response.status(500).send('Error, unable to save data.');
+    }
+});
+
+app.get('/get-data', async (request, response) => {
+    if (fs.existsSync(dataFile)) {
+        fs.readFile(dataFile, async (error, data) => {
+            if (error) {
+                console.log(`get-data read file error > ${error.message}`);
+                response.set('Content-Type', 'text/json').status(500).send({message: error.message});
+            }
+            else response.set('Content-Type', 'text/json').status(200).send(data);
+        });
+    }
+    else {
+        const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
+        fs.writeFile(dataFile, dataSchema, error => {
+            if (error) {
+                console.log(`get-data create file error > ${error.message}`);
+                response.set('Content-Type', 'text/json').status(500).send({message: error.message});
+            }
+            else response.set('Content-Type', 'text/json').status(200).send(dataSchema);
+        });
+    }    
+});
+
+app.get('/get-apikey', async (request, response) => {
+    let apikey;
+    try {
+        if (fs.existsSync(apiKeyFile)) {
+            apikey = readAPIKey();
         }
         else {
-            const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
-            fs.writeFile(dataFile, dataSchema, error => {
-                response.set('Content-Type', 'text/json').status(200).send(dataSchema);
-            });
+            apikey = createAPIKey();
+            fs.writeFileSync(apiKeyFile, apikey);
         }
-    }    
-    else if (action == 'set-data') {
-        try {
-            fs.writeFileSync(dataFile, req.home_tab_data);
-            // fs.existsSync(recycleBin) && fs.rmSync(recycleBin, {recursive: true, force: true});
-            response.set('content-type', 'text/json').status(200).send(req.home_tab_data);
-        }
-        catch (error) {
-            console.log(`set-data error > ${error.message}`);
-            response.status(500).send('Error, unable to save data.');
-        }
+        response.set('content-type', 'text/json').status(200).send({apikey: apikey});
     }
-    else if (action == 'get-api-key') {
-        let apikey;
-        try {
-            if (fs.existsSync(apiKeyFile)) {
-                apikey = readAPIKey();
-            }
-            else {
-                apikey = createAPIKey();
-                fs.writeFileSync(apiKeyFile, apikey);
-            }
-            response.set('content-type', 'text/json').status(200).send({apikey: apikey});
-        }
-        catch (error) {
-            console.log(`create-api-key error > ${error.message}`);
-            response.set('content-type', 'text/plain').status(500).send('Error, unable to create api key.');
-        }
-    }
+    catch (error) {
+        console.log(`create-api-key error > ${error.message}`);
+        response.set('content-type', 'text/plain').status(500).send('Error, unable to create api key.');
+    }   
 });
 
 app.listen(port, () => {

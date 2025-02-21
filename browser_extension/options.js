@@ -29,4 +29,4 @@ const setFormData = async () => {
     apikey.value = data.apiKey;
 };
 
-setFormData();
+document.addEventListener('DOMContentLoaded', setFormData);

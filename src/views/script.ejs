@@ -102,13 +102,7 @@ const downloadDataFile = data => {
 };
 
 const getDataFromServer = event => {
-    const formData = new FormData();
-    formData.append('action', 'get-data');
-    fetch('/process/', {
-        method: 'POST',
-        header: {'Content-Type': 'multipart/form-data'},
-        body: formData
-    })    
+    fetch('/get-data/')    
     .then(resp => resp.json())
     .then(data => {
         if (isHomeTabBookmarkData(data.home_tab_data)) {
@@ -134,9 +128,8 @@ const setDataToServer = async () => {
         homeTabData.timestamp = Date.now();
         homeTabData.version = version;
         const formData = new FormData();
-        formData.append('action', 'set-data');
         formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
-        return await fetch('/process/', {
+        return await fetch('/set-data/', {
             method: 'POST',
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
@@ -688,13 +681,12 @@ const submitBookmarkForm = () => {
                 const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
                 const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
                 const formData = new FormData();
-                formData.append('action', 'create-thumbnail');
                 formData.append('url', bookmarkUrl);
                 formData.append('thumbnail_type', bookmarkThumbnailType);
                 formData.append('thumbnail_url', thumbnailSourceUrl);
                 formData.append('thumbnail_delete', deleteThumbnail);
                 formData.append('upload_buffer', uploadBuffer);
-                fetch('/process/', {
+                fetch('/create-thumbnail/', {
                     method: 'POST',
                     header: {'Content-Type': 'multipart/form-data'},
                     body: formData
@@ -739,9 +731,8 @@ const preceedDeleteItem = () => {
     }
     else {
         const formData = new FormData();
-        formData.append('action', 'delete-bookmark');
         formData.append('thumbnail_delete', bookmarkThumbnail);
-        fetch('/process/', {
+        fetch('/delete-thumbnail/', {
             method: 'POST',
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
@@ -904,23 +895,27 @@ const applyBackground = (type = 'apply') => {
     html('#background_action_button', svgSource.loading);
     qs('#background_action_button').disabled = true;
     const formData = new FormData();
-    formData.append('action', 'set-background');
     formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
     type == 'apply' && formData.append('upload_buffer', uploadBuffer);
-    fetch('/process/', {
+    fetch('/set-background/', {
         method: 'POST',
         header: {'Content-Type': 'multipart/form-data'},
         body: formData
     })
     .then(resp => resp.json())
     .then(data => {
-        homeTabData = data.home_tab_data;
-        if (homeTabData.hasOwnProperty('background_image')) {
-            document.body.style.backgroundImage = `url(${homeTabData.background_image})`;
-            showMessagePopup(`Background image ${type == 'apply' ? 'applied' : 'removed'}.`, 'info');
-            html('#background_action_button', type == 'apply' ? 'Remove' : 'Apply');
-            qs('#background_action_button').disabled = false;
-            cleanUploadBuffer();
+        if (data.hasOwnProperty('home_tab_data')) {
+            homeTabData = data.home_tab_data;
+            if (homeTabData.hasOwnProperty('background_image')) {
+                document.body.style.backgroundImage = `url(${homeTabData.background_image})`;
+                showMessagePopup(`Background image ${type == 'apply' ? 'applied' : 'removed'}.`, 'info');
+                html('#background_action_button', type == 'apply' ? 'Remove' : 'Apply');
+                qs('#background_action_button').disabled = false;
+                cleanUploadBuffer();
+            }
+        }
+        else {
+            showMessagePopup(data.message);
         }
     });
 };
@@ -1024,12 +1019,7 @@ const setDropArea = (type) => { // import / thumbnail / background
 
 const getAPIKey = () => {
     const formData = new FormData();
-    formData.append('action', 'get-api-key');
-    fetch('/process/', {
-        method: 'POST',
-        header: {'Content-Type': 'multipart/form-data'},
-        body: formData
-    })    
+    fetch('/get-apikey/')    
     .then(resp => resp.json())
     .then(data => {
         apikey = data.apikey;
@@ -1111,7 +1101,7 @@ const goToSettingSection = section => {
     });
     ['appearance', 'data-management'].includes(section) && setDropArea(section == 'appearance' ? 'background' : 'import');
     if (section == 'appearance') {
-        html('#background_action_button', homeTabData.background_image == '' ? 'Apply' : 'Remove');
+        html('#background_action_button', !homeTabData.background_image || homeTabData.background_image == '' ? 'Apply' : 'Remove');
     }
     if (section == 'api-key' && !apikey) {
         getAPIKey();
