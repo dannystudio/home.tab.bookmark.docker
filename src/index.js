@@ -186,16 +186,12 @@ app.post('/process', async (request, response) => {
     }
     else if (action == 'set-background') {
         const data = JSON.parse(req.home_tab_data);
-        !fs.existsSync(backgroundDir) && fs.mkdirSync(backgroundDir);
-        const files = fs.readdirSync(backgroundDir);
-        for (const file of files) {
-            const filePath = path.join(backgroundDir, file);
-            fs.unlinkSync(filePath);
-        }
+        fs.rmSync(backgroundDir, {recursive: true, force: true});
+        fs.mkdirSync(backgroundDir);
         try {
             let result = {status: 200};
             if (req.upload_buffer) {
-                await saveBackgroundImage({
+                result = await saveBackgroundImage({
                     dir: backgroundDir,
                     buffer: req.upload_buffer
                 });
