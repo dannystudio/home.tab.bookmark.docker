@@ -375,13 +375,10 @@ div[class^='settings-menu-item-'] {
 .thumbnail-options {
     display: flex;
     padding-bottom: 10px;
-    justify-content: space-between;
     div {
         display: flex;
-        width: 30%;
+        padding-right: 10px;
         align-items: center;
-        justify-content: start;
-        cursor: pointer;
         input[type='radio'] {
             position: relative;
             top: -1px;

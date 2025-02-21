@@ -922,7 +922,12 @@ const previewImage = files => {
     };
 };
 
-const verifyDrop = (files) => {
+const copyApiKey = () => {
+    navigator.clipboard.writeText(qs('.api-key-field').value);
+    showMessagePopup('API Key copied.', 'info');
+};
+
+const verifyDrop = files => {
     const acceptedFormat = qs('.drop-area-file-input').getAttribute('accept');
     const uploadFile = files[0];
     if (!acceptedFormat.split(',').includes(uploadFile.type)) {
@@ -1060,7 +1065,10 @@ const registSettingsEvents = () => {
                     break;
                 case 'background_action_button':
                     applyBackgroundChanges();
-                    break;                   
+                    break;
+                case 'copy-apikey':
+                    copyApiKey();
+                    break;                  
                 default:
                     return false;
             }
