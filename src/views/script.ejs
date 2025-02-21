@@ -515,17 +515,12 @@ const moveBookmark = event => {
         const groupIndex = findGrooupMoveTo(dropPointX);
         newBookmarks = homeTabData.groups[currentGroup].bookmarks;
         if (currentGroup != groupIndex) {
-            if (!checkExistingBookmarkLabel(groupIndex, -1, sourceBookmark.label)) {
-                homeTabData.groups[groupIndex].bookmarks.push({
-                    label: sourceBookmark.label,
-                    url: sourceBookmark.url,
-                    thumbnail: sourceBookmark.thumbnail
-                });
-                newBookmarks = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => index != sourceIndex);
-            }
-            else {
-                showMessagePopup(`&#34;${sourceBookmark.label}&#34; already exist in &#34;${homeTabData.groups[groupIndex].name}&#34; group.`);
-            }
+            homeTabData.groups[groupIndex].bookmarks.push({
+                label: sourceBookmark.label,
+                url: sourceBookmark.url,
+                thumbnail: sourceBookmark.thumbnail
+            });
+            newBookmarks = homeTabData.groups[currentGroup].bookmarks.filter((bookmark, index) => index != sourceIndex);
         }
     }
     else {
@@ -626,84 +621,65 @@ const switchReloadThumbnailType = (type = '') => {
         addClass('.bookmark-form', 'bookmark-form-small-expand');
     }
     setValue('.bookmark-thumbnail-type', type);
-};
-
-const checkExistingBookmarkLabel = (groupIndex, bookmarkIndex, bookmarkLabel) => {
-    const bookmarks = homeTabData.groups[groupIndex].bookmarks;
-    if (bookmarkIndex != -1 && bookmarks[bookmarkIndex].label == bookmarkLabel) {
-        return false;
-    }
-    for (let i = 0; i < bookmarks.length; i ++) {
-        if (i == bookmarkIndex) continue;
-        if (bookmarks[i].label == bookmarkLabel) {
-            return true;
-        }
-    }
-    return false;
 }; 
 
 const submitBookmarkForm = () => {
     const currentGroup = homeTabData.current_group;
-    const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);  
-    if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {        
-        if (!checkExistingBookmarkLabel(currentGroup, bookmarkIndex, bookmarkLabel)) {
-            if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'string') {
-                showMessagePopup('Please select a file to upload.');
-                return false;
-            }
-            const submitType = bookmarkIndex == -1 ? 'Add' : 'Edit';
-            let shouldReloadThumbnail = true;
-            if (submitType == 'Edit') {
-                const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
-                if (targetDataBlock.url == bookmarkUrl && bookmarkThumbnailType == '') {
-                    shouldReloadThumbnail = false;
-                }
-            }
-            const updateBookmark = filename => {
-                const bookmarks = homeTabData.groups[currentGroup].bookmarks;
-                let newIndex;
-                if (bookmarkIndex == -1) {
-                    newIndex = bookmarks.length;
-                    bookmarks[newIndex] = {};
-                }
-                else newIndex = bookmarkIndex;
-                bookmarks[newIndex].label = bookmarkLabel;
-                bookmarks[newIndex].url = bookmarkUrl;
-                if (filename) {
-                    bookmarks[newIndex].thumbnail = filename;
-                }
-                goToGroup(currentGroup); 
-                closeBookmarkForm();
-            };
-            if (shouldReloadThumbnail) {
-                html('.bookmark-form-submit-button', svgSource.loading);
-                disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-button');
-                const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
-                const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
-                const formData = new FormData();
-                formData.append('url', bookmarkUrl);
-                formData.append('thumbnail_type', bookmarkThumbnailType);
-                formData.append('thumbnail_url', thumbnailSourceUrl);
-                formData.append('thumbnail_delete', deleteThumbnail);
-                formData.append('upload_buffer', uploadBuffer);
-                fetch('/create-thumbnail/', {
-                    method: 'POST',
-                    header: {'Content-Type': 'multipart/form-data'},
-                    body: formData
-                })
-                .then(resp => resp.json())
-                .then(data => {
-                    if (data.message) {
-                        showMessagePopup(data.message);
-                    }
-                    updateBookmark(data.filename);
-                });
-            }
-            else updateBookmark();
+    const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);
+    if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {
+        if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'string') {
+            showMessagePopup('Please select a file to upload.');
+            return false;
         }
-        else {
-            showMessagePopup(`&#34;${bookmarkLabel}&#34; already exist, please use another label.`);
-        }    
+        const submitType = bookmarkIndex == -1 ? 'Add' : 'Edit';
+        let shouldReloadThumbnail = true;
+        if (submitType == 'Edit') {
+            const targetDataBlock = homeTabData.groups[currentGroup].bookmarks[bookmarkIndex];
+            if (targetDataBlock.url == bookmarkUrl && bookmarkThumbnailType == '') {
+                shouldReloadThumbnail = false;
+            }
+        }
+        const updateBookmark = filename => {
+            const bookmarks = homeTabData.groups[currentGroup].bookmarks;
+            let newIndex;
+            if (bookmarkIndex == -1) {
+                newIndex = bookmarks.length;
+                bookmarks[newIndex] = {};
+            }
+            else newIndex = bookmarkIndex;
+            bookmarks[newIndex].label = bookmarkLabel;
+            bookmarks[newIndex].url = bookmarkUrl;
+            if (filename) {
+                bookmarks[newIndex].thumbnail = filename;
+            }
+            goToGroup(currentGroup); 
+            closeBookmarkForm();
+        };
+        if (shouldReloadThumbnail) {
+            html('.bookmark-form-submit-button', svgSource.loading);
+            disableForm(bookmarkForm, '.close-bookmark-form', '.delete-bookmark-button');
+            const deleteThumbnail = editingMemo.length > 0 ? editingMemo[3] : '';
+            const thumbnailSourceUrl = bookmarkThumbnailType != 'upload' && bookmarkThumbnailCUrl != '' ? bookmarkThumbnailCUrl : bookmarkUrl;
+            const formData = new FormData();
+            formData.append('url', bookmarkUrl);
+            formData.append('thumbnail_type', bookmarkThumbnailType);
+            formData.append('thumbnail_url', thumbnailSourceUrl);
+            formData.append('thumbnail_delete', deleteThumbnail);
+            formData.append('upload_buffer', uploadBuffer);
+            fetch('/create-thumbnail/', {
+                method: 'POST',
+                header: {'Content-Type': 'multipart/form-data'},
+                body: formData
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.message) {
+                    showMessagePopup(data.message);
+                }
+                updateBookmark(data.filename);
+            });
+        }
+        else updateBookmark();    
     }
     else {
         showMessagePopup('URL and Label cannot be empty.');
