@@ -488,6 +488,7 @@ div[class^='settings-menu-item-'] {
     border: 1px solid var(--main-border-color);
     border-radius: 3px;    
     background-color: var(--secondary-bg-color);
+    overflow: hidden;
     cursor: pointer;
 }
 

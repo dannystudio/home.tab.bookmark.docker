@@ -240,11 +240,11 @@ const renderAppMenuContent = (hiddenGroups = []) => {
         });
         addGroupButton && container.append(addGroupButton); 
         const divider = create('div', '', 'app-menu-divider');
-        container.append(divider);        
+        container.append(divider);
+        const settingsItem = create('div', '&#9900; Settings');
+        settingsItem.addEventListener('click', showSettingsPanel);    
+        container.append(settingsItem);
     }
-    const settingsItem = create('div', '&#9900; Settings');
-    settingsItem.addEventListener('click', showSettingsPanel);    
-    container.append(settingsItem);
 };
 
 const renderGroups = () => {
@@ -277,6 +277,7 @@ const renderBookmarks = data => {
     const container = qs('.bookmark-container');
     html(container);
     container.addEventListener('click', closeAppMenu);
+    container.parentNode.addEventListener('click', closeAppMenu);
     data.forEach((bookmark, bookmarkIndex) => {
         const bookmarkItem = create('div', '', 'bookmark-item', {
             id: `bookmark${bookmarkIndex}`,
@@ -1097,15 +1098,22 @@ const showSettingsPanel = () => {
 };
 
 const closeAppMenu = () => {
-    qs('.app-menu-content').getAttribute('displayed') == 'true' && toggleAppMenu();
+    if (qs('.app-menu-content').innerHTML != '') {
+        qs('.app-menu-content').getAttribute('displayed') == 'true' && toggleAppMenu();
+    }
 };
 
 const toggleAppMenu = () => {
     const menuContentDiv = qs('.app-menu-content');
-    let displayed = menuContentDiv.getAttribute('displayed') == 'true';
-    displayed ? removeClass('.app-menu-container', 'app-menu-container-show') : addClass('.app-menu-container', 'app-menu-container-show');
-    displayed ? removeClass(menuContentDiv, 'app-menu-content-expand') : addClass(menuContentDiv, 'app-menu-content-expand');
-    attr(menuContentDiv, {displayed: (!displayed).toString()});
+    if (menuContentDiv.innerHTML == '')  {
+        showSettingsPanel();
+    }
+    else {
+        let displayed = menuContentDiv.getAttribute('displayed') == 'true';
+        displayed ? removeClass('.app-menu-container', 'app-menu-container-show') : addClass('.app-menu-container', 'app-menu-container-show');
+        displayed ? removeClass(menuContentDiv, 'app-menu-content-expand') : addClass(menuContentDiv, 'app-menu-content-expand');
+        attr(menuContentDiv, {displayed: (!displayed).toString()});
+    }
 };
 
 const setBookmarkContainer = () => {
