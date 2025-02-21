@@ -222,43 +222,51 @@ app.post('/set-data', async (request, response) => {
 });
 
 app.get('/get-data', async (request, response) => {
-    if (fs.existsSync(dataFile)) {
-        fs.readFile(dataFile, async (error, data) => {
-            if (error) {
-                console.log(`get-data read file error > ${error.message}`);
-                response.set('Content-Type', 'text/json').status(500).send({message: error.message});
-            }
-            else response.set('Content-Type', 'text/json').status(200).send(data);
-        });
+    const referer = request.get('referer');
+    if (referer) {
+        if (fs.existsSync(dataFile)) {
+            fs.readFile(dataFile, async (error, data) => {
+                if (error) {
+                    console.log(`get-data read file error > ${error.message}`);
+                    response.set('Content-Type', 'text/json').status(500).send({message: error.message});
+                }
+                else response.set('Content-Type', 'text/json').status(200).send(data);
+            });
+        }
+        else {
+            const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
+            fs.writeFile(dataFile, dataSchema, error => {
+                if (error) {
+                    console.log(`get-data create file error > ${error.message}`);
+                    response.set('Content-Type', 'text/json').status(500).send({message: error.message});
+                }
+                else response.set('Content-Type', 'text/json').status(200).send(dataSchema);
+            });
+        }
     }
-    else {
-        const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
-        fs.writeFile(dataFile, dataSchema, error => {
-            if (error) {
-                console.log(`get-data create file error > ${error.message}`);
-                response.set('Content-Type', 'text/json').status(500).send({message: error.message});
-            }
-            else response.set('Content-Type', 'text/json').status(200).send(dataSchema);
-        });
-    }    
+    else response.status(404).send('File Not Found.');
 });
 
 app.get('/get-apikey', async (request, response) => {
-    let apikey;
-    try {
-        if (fs.existsSync(apiKeyFile)) {
-            apikey = readAPIKey();
+    const referer = request.get('referer');
+    if (referer) {
+        let apikey;
+        try {
+            if (fs.existsSync(apiKeyFile)) {
+                apikey = readAPIKey();
+            }
+            else {
+                apikey = createAPIKey();
+                fs.writeFileSync(apiKeyFile, apikey);
+            }
+            response.set('content-type', 'text/json').status(200).send({apikey: apikey});
         }
-        else {
-            apikey = createAPIKey();
-            fs.writeFileSync(apiKeyFile, apikey);
-        }
-        response.set('content-type', 'text/json').status(200).send({apikey: apikey});
+        catch (error) {
+            console.log(`create-api-key error > ${error.message}`);
+            response.set('content-type', 'text/plain').status(500).send('Error, unable to create api key.');
+        } 
     }
-    catch (error) {
-        console.log(`create-api-key error > ${error.message}`);
-        response.set('content-type', 'text/plain').status(500).send('Error, unable to create api key.');
-    }   
+    else response.status(404).send('File Not Found.');
 });
 
 app.listen(port, () => {
