@@ -2,9 +2,6 @@ const host = document.getElementById('host');
 const apikey = document.getElementById('apikey');
 const saveBtn = document.getElementById('saveBtn');
 
-// browserObj.storage.local.get('home-tab-bookmark-host', data => host.value = data['home-tab-bookmark-host'] || defaultTestUrl);
-// browserObj.storage.local.get('home-tab-bookmark-api-key', data => apikey.value = data['home-tab-bookmark-api-key'] || '');
-
 saveBtn.addEventListener('click', () => {
     const hostValue = host.value.trim();
     const apikeyValue = apikey.value.trim();

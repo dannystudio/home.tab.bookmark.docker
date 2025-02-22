@@ -7,7 +7,8 @@ const addToGroup = async event => {
         const tabData = await browserObj.tabs.query({active: true, lastFocusedWindow: true});
         const url = tabData[0].url || '';
         const title = tabData[0].title || '';
-        fetch(`${data.hostName}/api/add/bookmark?apikey=${data.apiKey}&group=${groupName}&url=${url}&title=${title}`)
+        const junction = data.hostName.slice(-1) == '/' ? '' : '/';
+        fetch(`${data.hostName}${junction}api/add/bookmark?apikey=${data.apiKey}&group=${groupName}&url=${url}&title=${title}`)
         .then(resp => resp.json())
         .then(data => {
             groupContainer.innerHTML = data.status == 200 ? `Tab saved in ${groupName}` : data.message;
@@ -25,7 +26,8 @@ const addToGroup = async event => {
 const getGroups = async () => {
     const data = await getStorageData();
     if (data.hostName && data.apiKey) {
-        fetch(`${data.hostName}/api/group?apikey=${data.apiKey}`)
+        const junction = data.hostName.slice(-1) == '/' ? '' : '/';
+        fetch(`${data.hostName}${junction}api/group?apikey=${data.apiKey}`)
         .then(resp => resp.json())
         .then(data => {
             if (data.hasOwnProperty('groups')) {
