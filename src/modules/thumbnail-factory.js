@@ -170,7 +170,7 @@ const createThumbnail = async (fileProps) => {
     return fileProps.thumbnailType == 'upload' ?
     await handleImageUpload(fileProps) : 
     (
-        fileProps.thumbnailType == 'screenshot' && fileProps.screenshotAPI == 'false' ?
+        fileProps.thumbnailType == 'screenshot' && fileProps.screenshotAPI == '' ?
         await getScreenshot(fileProps) :
         await getImageFromAPI(fileProps)
     );
