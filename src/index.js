@@ -10,7 +10,7 @@ const {createThumbnail, saveBackgroundImage} = require('./modules/thumbnail-fact
 
 // Available ENV
 const port = process.env.PORT || 3000;
-const screenshotAPI = process.env.SCREENSHOT_API || 'false';
+const screenshotAPI = process.env.SCREENSHOT_API || '';
 const enableBasicAuth = process.env.BASIC_AUTH || 'disabled'; // disabled, always, whitelist
 const authWhiteList = process.env.BASIC_AUTH_WHITE_LIST ? `${process.env.BASIC_AUTH_WHITE_LIST},localhost:${port}` : `localhost:${port}`;
 const username = process.env.USER_NAME || 'admin';
@@ -235,6 +235,7 @@ app.get('/get-data', async (request, response) => {
         }
         else {
             const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
+            !fs.existsSync(dataRoot) && fs.mkdirSync(dataRoot);
             fs.writeFile(dataFile, dataSchema, error => {
                 if (error) {
                     console.log(`get-data create file error > ${error.message}`);

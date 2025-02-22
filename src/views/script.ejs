@@ -1012,7 +1012,7 @@ const getAPIKey = () => {
 const setSettings = (applyToForm = true) => {
     rememberGroupIndex = homeTabData.hasOwnProperty('remember_group_index') ? homeTabData.remember_group_index : true;
     openInNewTab = homeTabData.hasOwnProperty('open_in_new_tab') ? homeTabData.open_in_new_tab : false;
-    autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 5;
+    autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 3;
     maxBookmarkPerRow = homeTabData.hasOwnProperty('max_bookmark_per_row') ? parseInt(homeTabData.max_bookmark_per_row) : 6;
     const appBackgroundImage = homeTabData.hasOwnProperty('background_image') ? homeTabData.background_image : '';
     appBackgroundImage != '' && (document.body.style.backgroundImage = `url(${appBackgroundImage})`);

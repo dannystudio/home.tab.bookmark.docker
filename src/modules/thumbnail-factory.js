@@ -132,7 +132,7 @@ const prepareImage = async fileProps => {
 
 const getImageFromAPI = async fileProps => {
     const thumbnailType = fileProps.thumbnailType;
-    const apiUrl = thumbnailType == 'favicon' ? faviconAPI : ((fileProps.screenshotAPI != 'false') ? fileProps.screenshotAPI : faviconAPI);
+    const apiUrl = thumbnailType == 'favicon' ? faviconAPI : ((fileProps.screenshotAPI != '') ? fileProps.screenshotAPI : faviconAPI);
     return await axios({
         url: `${apiUrl}${fileProps.thumbnailUrl}`,
         method: 'GET',
