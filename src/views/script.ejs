@@ -12,26 +12,72 @@ const qs = (selector, all = false) => {
 
 const attr = (selector, arrtProps) => {
     const obj = qs(selector);
-    for (const prop in arrtProps) {
-        obj.setAttribute(prop, arrtProps[prop]);
+    if (typeof arrtProps === 'object') {
+        for (const prop in arrtProps) {
+            obj.setAttribute(prop, arrtProps[prop]);
+        }
     }
+    else return obj.getAttribute(arrtProps);
 };
 
-const html = (selector, content = '') => {
-    qs(selector).innerHTML = content;
+const css = (selector, styleProps) => {
+    const obj = qs(selector);
+    if (typeof styleProps === 'object') {
+        for (const prop in styleProps) {
+            obj.style[prop] = styleProps[prop];
+        }        
+    }
+    else return obj.style[styleProps];
+};
+
+const html = (selector, content) => {
+    if (typeof content !== 'undefined') {
+        qs(selector).innerHTML = content;
+    }
+    else return qs(selector).innerHTML;
+};
+
+const addClass = (selector, ...classname) => {
+    [...classname].forEach(name => qs(selector).classList.add(name));
+};
+
+const removeClass = (selector, ...classname) => {
+    [...classname].forEach(name => qs(selector).classList.remove(name));
+};
+
+const disableForm = (formObj, ...additionalSelector) => {
+    Array.from(formObj.elements).forEach(elem => elem.disabled = true);
+    [...additionalSelector].forEach(sel => qs(sel).disabled = true);
+};
+
+const enableForm = (formObj, ...additionalSelector) => {
+    Array.from(formObj.elements).forEach(elem => elem.disabled = false);
+    [...additionalSelector].forEach(sel => qs(sel).disabled = false);
+};
+
+const show = (selector, disp = 'flex') => {
+    css(selector, {display: disp});
+};
+
+const hide = (...selectors) => {
+    [...selectors].forEach(sel => css(sel, {display: 'none'}));
 };
 
 const create = (tag, ...props) => {
     const obj = document.createElement(tag);
     const [content, classname, attributes] = props;
-    if (attributes !== undefined) {
+    if (typeof attributes !== 'undefined') {
         for (const attr in attributes) {
             obj.setAttribute(attr, attributes[attr]);
         }
     }
-    content !== undefined && content !== '' && (obj.innerHTML = content);
-    classname !== undefined && (obj.className = classname);
+    typeof content !== 'undefined' && content !== '' && html(obj, content);
+    typeof classname !== 'undefined' && (obj.className = classname);
     return obj;  
+};
+
+const setBackground = (selector, path = '') => {
+    css(selector, {backgroundImage: `url(${path})`});
 };
 
 const setDragStartState = obj => {
@@ -51,9 +97,7 @@ const setGruopVisibility = () => {
         addClass(addGropuObj, 'group-visibility-hidden');
         hiddenGroups.push(addGropuObj);
     }
-    else {
-        removeClass(addGropuObj, 'group-visibility-hidden');
-    }
+    else removeClass(addGropuObj, 'group-visibility-hidden');
     groups.forEach((group, index) => {
         const groupObj = qs(`#group${index}`);
         const groupObjProps = getBoundingProps(groupObj);
@@ -61,9 +105,7 @@ const setGruopVisibility = () => {
             addClass(groupObj, 'group-visibility-hidden');
             hiddenGroups.push(groupObj);
         }
-        else {
-            removeClass(groupObj, 'group-visibility-hidden');
-        }
+        else removeClass(groupObj, 'group-visibility-hidden');
     });
     renderAppMenuContent(hiddenGroups);
 };
@@ -82,7 +124,7 @@ const getValue = selector => {
 
 const setFormValues = (form, values = []) => {
     const inputs = Array.from(form.childNodes).filter(child => child.tagName == 'INPUT' && child.type.match(/hidden|text/i));
-    inputs.forEach((input, index) => input.value = values[index]);    
+    inputs.forEach((input, index) => input.value = values[index]);
 };
 
 const getFormValues = form => {
@@ -92,13 +134,21 @@ const getFormValues = form => {
     return values;
 };
 
-const downloadDataFile = data => {
-    const dataString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
-    const exportDataAnchor = create('a', '', '', {
-        href: dataString,
-        download: 'home-tab-bookmark-data.json'
-    });
-    exportDataAnchor.click();
+const setDataToServer = async () => {
+    if (isHomeTabBookmarkData(homeTabData)) {
+        homeTabData.timestamp = Date.now();
+        const formData = new FormData();
+        formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
+        return await fetch('/set-data/', {
+            method: 'POST',
+            header: {'Content-Type': 'multipart/form-data'},
+            body: formData
+        })
+        .catch(error => {
+            showMessagePopup('Unable to retrieve data, please try again later.');
+        }); 
+    }
+    else showMessagePopup('Data may have corrupted, please try import data from backup file.');
 };
 
 const getDataFromServer = event => {
@@ -110,78 +160,31 @@ const getDataFromServer = event => {
                 homeTabData = data.home_tab_data;
                 doneInit();
             }
-            else {
-                downloadDataFile(data);
-            }
+            else downloadDataFile(data);
         }
-        else {
-            showMessagePopup('Data corrupted, try import data from backup file.');
-        }
+        else showMessagePopup('Data may have corrupted, please try import data from backup file.');
     })
     .catch(error => {
-        showMessagePopup('Error while retrieving data, please try again later.');
+        showMessagePopup('Unable to retrieve data, please try again later.');
     });
 };
 
-const setDataToServer = async () => {
-    if (isHomeTabBookmarkData(homeTabData)) {
-        homeTabData.timestamp = Date.now();
-        homeTabData.version = version;
-        const formData = new FormData();
-        formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
-        return await fetch('/set-data/', {
-            method: 'POST',
-            header: {'Content-Type': 'multipart/form-data'},
-            body: formData
-        })
-        .catch(error => {
-            showMessagePopup('Error while retrieving data, please try again later.');
-        }); 
-    }
-    else {
-        showMessagePopup('Data may have corrupted, please try import data from backup file.');
-    }
-};
-
-const setDataToLocal = (skipVerify = false) => {
-
-};
-
-const addClass = (selector, ...classname) => {
-    [...classname].forEach(name => qs(selector).classList.add(name));
-};
-
-const removeClass = (selector, ...classname) => {
-    [...classname].forEach(name => qs(selector).classList.remove(name));
-};
-
-const show = (selector, disp = 'flex') => {
-    qs(selector).style.display = disp;
-};
-
-const hide = (...selectors) => {
-    [...selectors].forEach(sel => qs(sel).style.display = 'none');
-};
-
-const disableForm = (formObj, ...additionalSelector) => {
-    Array.from(formObj.elements).forEach(elem => elem.disabled = true);
-    [...additionalSelector].forEach(sel => qs(sel).disabled = true);
-};
-
-const enableForm = (formObj, ...additionalSelector) => {
-    Array.from(formObj.elements).forEach(elem => elem.disabled = false);
-    [...additionalSelector].forEach(sel => qs(sel).disabled = false);
+const downloadDataFile = data => {
+    const exportDataAnchor = create('a', '', '', {
+        href: `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data))}`,
+        download: 'home-tab-bookmark-data.json'
+    });
+    exportDataAnchor.click();
 };
 
 const closeMessagePopup = () => {
-    const messageObj = qs('.message-container');
-    const type = messageObj.getAttribute('message-type');
+    const type = attr('.message-container', 'message-type');
     hide('.message-mask', '.message-confirm-button-container', '.message-progress-bar');
-    html('.message-body-container');
+    html('.message-body-container', '');
     removeClass('.message-container', `message-${type}-theme`, 'message-default-cursor', 'message-container-show');
     removeClass('.message-progress-bar', `message-${type}-progress-bar`);
     removeClass('.message-progress-bar-fill', `message-${type}-theme`, 'message-progress-bar-fill-run');
-    messageTimer && clearTimeout(messageTimer);  
+    messageTimer && clearTimeout(messageTimer);
 };
 
 const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type == alert || info || confirm
@@ -207,7 +210,7 @@ const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type
             setTimeout(() => {
                 addClass('.message-progress-bar-fill', 'message-progress-bar-fill-run');
             }, 50);
-            qs('.message-progress-bar-fill').style.transition = `width ${autoDismissTimeframe}s ease-out`;
+            css('.message-progress-bar-fill', {transition: `width ${autoDismissTimeframe}s ease-out`});
             messageTimer = setTimeout(closeMessagePopup, autoDismissTimeframe * 1000);
         }
     }
@@ -217,17 +220,17 @@ const showMessagePopup = (message, type = 'alert', confirmCallback) => { // type
 
 const renderAppMenuContent = (hiddenGroups = []) => {
     const container = qs('.app-menu-content');
-    html(container);
+    html(container, '');
     if (hiddenGroups.length > 0) {  
         let addGroupButton;      
         hiddenGroups.forEach(group => {
-            if (group.innerHTML == '+') {
+            if (html(group) == '+') {
                 addGroupButton = create('div', '+ Add Group');
                 addGroupButton.addEventListener('click', addGroup);                 
             }
             else {
-                const index = group.getAttribute('group-index');
-                const groupItem = create('div', group.innerHTML, '', {'group-index': index});
+                const index = attr(group, 'group-index');
+                const groupItem = create('div', html(group), '', {'group-index': index});
                 index == homeTabData.current_group && addClass(groupItem, 'group-selected');
                 groupItem.addEventListener('click', () => {
                     closeAppMenu();
@@ -250,7 +253,7 @@ const renderAppMenuContent = (hiddenGroups = []) => {
 const renderGroups = () => {
     const groups = homeTabData.groups;
     const container = qs('.group-container');
-    html(container);
+    html(container, '');
     container.addEventListener('click', closeAppMenu);
     groups.forEach((group, groupIndex) => {
         const groupItem = create('div', group.name, 'group-label center', {
@@ -275,7 +278,7 @@ const renderGroups = () => {
 
 const renderBookmarks = data => {
     const container = qs('.bookmark-container');
-    html(container);
+    html(container, '');
     container.addEventListener('click', closeAppMenu);
     container.parentNode.addEventListener('click', closeAppMenu);
     data.forEach((bookmark, bookmarkIndex) => {
@@ -287,22 +290,16 @@ const renderBookmarks = data => {
             closeAppMenu();
             if (forceOpenInNewTab || (typeof openInNewTab !== 'undefined' && openInNewTab)) {
                 forceOpenInNewTab = false;
-                setTimeout(() => {
-                    window.open(bookmark.url);
-                }, 50);
+                setTimeout(() => window.open(bookmark.url), 50);
             }
-            else {
-                top.location.href = bookmark.url;
-            }
+            else top.location.href = bookmark.url;
         });
         bookmarkItem.addEventListener('dragstart', setBookmarkDrag);       
         bookmarkItem.addEventListener('dragend', moveBookmark);         
-        bookmarkItem.addEventListener('contextmenu', () => {
-            editBookmark(bookmark, bookmarkIndex);
-        });
+        bookmarkItem.addEventListener('contextmenu', () => editBookmark(bookmark, bookmarkIndex));
         const bookmarkThumb = create('div', '', 'bookmark-thumbnail');
         const thumbnailSource = bookmark.hasOwnProperty('thumbnail') && bookmark.thumbnail.match(/^(http|https):\/\//i) == null ? `/thumbnail/${bookmark.thumbnail}` : bookmark.thumbnail;
-        bookmarkThumb.style.background = `url(${thumbnailSource})`;
+        setBackground(bookmarkThumb, thumbnailSource);
         const bookmarkLabel = create('div', bookmark.label, 'bookmark-label');
         bookmarkItem.append(bookmarkThumb, bookmarkLabel);
         container.append(bookmarkItem);
@@ -352,7 +349,7 @@ const moveGroup = event => {
     if (homeTabData.groups.length < 2) return;
     const sourceObj = event.target;
     const sourceIndex = sourceObj.id.slice(5);
-    const startingPoint = sourceObj.getAttribute('starting-point');
+    const startingPoint = attr(sourceObj, 'starting-point');
     const dropPoint = getBoundingProps(sourceObj).x + (event.clientX - startingPoint);
     const groups = homeTabData.groups;
     const newGroups = [];
@@ -394,7 +391,7 @@ const moveGroup = event => {
 
 const editGroup = event => {
     const group = event.target;
-    const groupIndex = group.getAttribute('group-index');
+    const groupIndex = attr(group, 'group-index');
     const groupName = group.innerText;
     setFormValues(groupForm, [
         groupIndex,
@@ -437,21 +434,15 @@ const submitGroupForm = () => {
                 });
                 groupIndex = homeTabData.groups.length - 1;
             }
-            else {
-                homeTabData.groups[groupIndex].name = groupName;
-            }
+            else homeTabData.groups[groupIndex].name = groupName;
             renderGroups();
             goToGroup(groupIndex);
             setGruopVisibility();
             closeGroupForm();
         }
-        else {
-            showMessagePopup(`&#34;${groupName}&#34; already exist, please use another name.`);
-        }
+        else showMessagePopup(`&#34;${groupName}&#34; already exist, please use another name.`);
     }
-    else {
-        showMessagePopup('Group Name cannot be empty.');
-    }
+    else showMessagePopup('Group Name cannot be empty.');
 };
 
 const closeBookmarkForm = () => {
@@ -501,7 +492,7 @@ const findGrooupMoveTo = dropX => {
 const moveBookmark = event => {
     const sourceObj = event.target;
     const sourceIndex = sourceObj.id.slice(8);
-    const startingPoint = JSON.parse(sourceObj.getAttribute('starting-point'));
+    const startingPoint = JSON.parse(attr(sourceObj, 'starting-point'));
     const dropPointX = getBoundingProps(sourceObj).x + (event.clientX - startingPoint.x);
     const dropPointY = getBoundingProps(sourceObj).y + (event.clientY - startingPoint.y);
     const currentGroup = homeTabData.current_group;
@@ -539,9 +530,7 @@ const moveBookmark = event => {
             if (dropPointY < baseY) {
                 dropPointFlatX = dropPointX;
             }
-            else {
-                dropPointFlatX = (bodyWidth * Math.floor(dropPointY / baseY)) + dropPointX;
-            }
+            else dropPointFlatX = (bodyWidth * Math.floor(dropPointY / baseY)) + dropPointX;
             if (bookmarkFlatX <= dropPointFlatX) {
                 if (index != sourceIndex) {
                     newBookmarks.push(bookmark);
@@ -590,12 +579,11 @@ const editBookmark = (bookmark, bookmarkIndex) => {
 const addBookmark = () => {
     setValue('.bookmark-form-index', -1);
     qs('#thumbnail_option_favicon').click();
-
     showBookmarkForm();
 };
 
 const initThumbnailUploader = () => {
-    setDropArea('thumbnail')
+    setDropArea('thumbnail');
 };
 
 const switchThumbnailType = (type = '') => {
@@ -623,7 +611,7 @@ const switchThumbnailType = (type = '') => {
 
 const submitBookmarkForm = () => {
     const currentGroup = homeTabData.current_group;
-    const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl]= getFormValues(bookmarkForm);
+    const [bookmarkIndex, bookmarkUrl, bookmarkLabel, bookmarkThumbnailType, bookmarkThumbnailCUrl] = getFormValues(bookmarkForm);
     if (bookmarkLabel.trim() !== '' && bookmarkUrl.trim() !== '') {
         if (bookmarkThumbnailType == 'upload' && typeof uploadBuffer !== 'string') {
             showMessagePopup('Please select a file to upload.');
@@ -679,9 +667,7 @@ const submitBookmarkForm = () => {
         }
         else updateBookmark();    
     }
-    else {
-        showMessagePopup('URL and Label cannot be empty.');
-    }
+    else showMessagePopup('URL and Label cannot be empty.');
 };
 
 const cancelDeleteItem = () => {
@@ -846,9 +832,7 @@ const importData = files => {
                 goToGroup(homeTabData.current_group);
                 showMessagePopup('Data import successfully.', 'info');
             }
-            else {
-                showMessagePopup('Invalid file format.');
-            }
+            else showMessagePopup('Invalid file format.');
         }
         catch (error) {
             showMessagePopup('Error, please try again later.');
@@ -881,21 +865,19 @@ const applyBackground = (type = 'apply') => {
         if (data.hasOwnProperty('home_tab_data')) {
             homeTabData = data.home_tab_data;
             if (homeTabData.hasOwnProperty('background_image')) {
-                document.body.style.backgroundImage = `url(${homeTabData.background_image})`;
+                setBackground(document.body, homeTabData.background_image);
                 showMessagePopup(`Background image ${type == 'apply' ? 'applied' : 'removed'}.`, 'info');
                 html('#background_action_button', type == 'apply' ? 'Remove' : 'Apply');
                 qs('#background_action_button').disabled = false;
                 cleanUploadBuffer();
             }
         }
-        else {
-            showMessagePopup(data.message);
-        }
+        else showMessagePopup(data.message);
     });
 };
 
 const preceedRemoveBackground = () => {
-    qs('.drop-area-container').style.backgroundImage = '';
+    setBackground('.drop-area-container');
     homeTabData.background_image = '';
     applyBackground('remove');
     closeMessagePopup();
@@ -909,7 +891,7 @@ const removeBackground = () => {
 };
 
 const applyBackgroundChanges = () => {
-    const type = qs('#background_action_button').innerHTML;
+    const type = html('#background_action_button');
     type == 'Apply' ? applyBackground() : removeBackground();
 }
 
@@ -918,7 +900,7 @@ const previewImage = files => {
     reader.readAsDataURL(files[0]);
     reader.onloadend = () => {
         uploadBuffer = reader.result;
-        qs('.drop-area-container').style.backgroundImage = `url(${reader.result})`;
+        setBackground('.drop-area-container', reader.result);
     };
 };
 
@@ -928,13 +910,13 @@ const copyApiKey = () => {
 };
 
 const verifyDrop = files => {
-    const acceptedFormat = qs('.drop-area-file-input').getAttribute('accept');
+    const acceptedFormat = attr('.drop-area-file-input', 'accept');
     const uploadFile = files[0];
     if (!acceptedFormat.split(',').includes(uploadFile.type)) {
         showMessagePopup('Invalid file format.');
     }
     else {
-        const type = qs('.drop-area-file-input').getAttribute('upload-type');
+        const type = attr('.drop-area-file-input', 'upload-type');
         if (type == 'import') {
             importData(files);
         }
@@ -951,7 +933,7 @@ const cleanUploadBuffer = () => {
 
 const resetDropArea = () => {
     ['import', 'thumbnail', 'background'].forEach(container => {
-        html(`.${container}-upload-container`);
+        html(`.${container}-upload-container`, '');
     });
     cleanUploadBuffer();
 };
@@ -959,7 +941,7 @@ const resetDropArea = () => {
 const setDropArea = (type) => { // import / thumbnail / background
     resetDropArea();
     const acceptedFormat = type == 'import' ? 'application/json,text/html' : 'image/png,image/jpeg';
-    const dropAreaCode = qs('.drop-area-mock').innerHTML.replace(/-mock/g, '');
+    const dropAreaCode = html('.drop-area-mock').replace(/-mock/g, '');
     const targetSelector = `.${type}-upload-container`;
     html(targetSelector, dropAreaCode);
     attr('.drop-area-file-input', {
@@ -967,7 +949,7 @@ const setDropArea = (type) => { // import / thumbnail / background
         'upload-type': type
     });
     const dropArea = qs('.drop-area-container');
-    qs('.drop-area-container').style.backgroundImage = type == 'background' ? `url(${homeTabData.background_image})` : '';
+    setBackground('.drop-area-container', type == 'background' ? homeTabData.background_image : '');
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
         dropArea.addEventListener(evt, event => {
             event.preventDefault();
@@ -1015,7 +997,7 @@ const setSettings = (applyToForm = true) => {
     autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 3;
     maxBookmarkPerRow = homeTabData.hasOwnProperty('max_bookmark_per_row') ? parseInt(homeTabData.max_bookmark_per_row) : 6;
     const appBackgroundImage = homeTabData.hasOwnProperty('background_image') ? homeTabData.background_image : '';
-    appBackgroundImage != '' && (document.body.style.backgroundImage = `url(${appBackgroundImage})`);
+    appBackgroundImage != '' && setBackground(document.body, appBackgroundImage);
     const colorScheme = homeTabData.hasOwnProperty('color_scheme') ? homeTabData.color_scheme : 'light_dark';
     if (applyToForm) {
         qs('#remember_group_index').checked = rememberGroupIndex;
@@ -1027,13 +1009,12 @@ const setSettings = (applyToForm = true) => {
     setBookmarkContainer();
 };
 
-const saveSettings = (id, ...value) => {
-    const [val] = value;
+const saveSettings = (id, value) => {
     if (id.match(/(color_scheme_)/) != null) {
         homeTabData.color_scheme = id.replace(/color_scheme_/, '');
     }
     if (['remember_group_index', 'max_bookmark_per_row', 'open_in_new_tab', 'auto_dismiss_timeframe'].indexOf(id) != -1) {
-        homeTabData[id] = val;
+        homeTabData[id] = value;
     }
     setSettings(false);
     setDataToServer();
@@ -1074,7 +1055,7 @@ const registSettingsEvents = () => {
             }
         });
     });       
-}
+};
 
 const goToSettingSection = section => {
     settingsMenuItem.forEach(item => {
@@ -1106,18 +1087,18 @@ const showSettingsPanel = () => {
 };
 
 const closeAppMenu = () => {
-    if (qs('.app-menu-content').innerHTML != '') {
-        qs('.app-menu-content').getAttribute('displayed') == 'true' && toggleAppMenu();
+    if (html('.app-menu-content') != '') {
+        attr('.app-menu-content', 'displayed') == 'true' && toggleAppMenu();
     }
 };
 
 const toggleAppMenu = () => {
     const menuContentDiv = qs('.app-menu-content');
-    if (menuContentDiv.innerHTML == '')  {
+    if (html(menuContentDiv) == '')  {
         showSettingsPanel();
     }
     else {
-        let displayed = menuContentDiv.getAttribute('displayed') == 'true';
+        let displayed = attr(menuContentDiv, 'displayed') == 'true';
         displayed ? removeClass('.app-menu-container', 'app-menu-container-show') : addClass('.app-menu-container', 'app-menu-container-show');
         displayed ? removeClass(menuContentDiv, 'app-menu-content-expand') : addClass(menuContentDiv, 'app-menu-content-expand');
         attr(menuContentDiv, {displayed: (!displayed).toString()});
@@ -1126,17 +1107,17 @@ const toggleAppMenu = () => {
 
 const setBookmarkContainer = () => {
     const bookmarkPerRow = Math.min(Math.floor((window.innerWidth + 17) / bookmarkSpace), maxBookmarkPerRow);
-    qs('.bookmark-container').style.maxWidth = `${bookmarkSpace * bookmarkPerRow}px`;
-    qs('.bookmark-container').style.minWidth = `${bookmarkSpace * bookmarkPerRow}px`;
+    css('.bookmark-container', {maxWidth: `${bookmarkSpace * bookmarkPerRow}px`});
+    css('.bookmark-container', {minWidth: `${bookmarkSpace * bookmarkPerRow}px`});
 };
 
 const handleKeyPressed = event => {
     if (event.key == 'Escape') {
-        if (qs('.message-mask').style.display != 'none' && qs('.message-mask').style.display != '') {
+        if (!['', 'none'].includes(css('.message-mask', 'display'))) {
             closeMessagePopup();
         }
         else {
-            if (qs('.popup-mask').style.display != 'none') {
+            if (css('.popup-mask', 'display') != 'none') {
                 closeGroupForm();
                 closeBookmarkForm();
                 closeSettingsPanel();

@@ -180,16 +180,19 @@ app.post('/set-background', async (request, response) => {
     fs.rmSync(backgroundDir, {recursive: true, force: true});
     fs.mkdirSync(backgroundDir);
     try {
-        const result = await saveBackgroundImage({
-            dir: backgroundDir,
-            buffer: req.upload_buffer
-        });
-        if (result.filepath) {
-            data.home_tab_data.background_image = result.filepath;
-            fs.writeFileSync(dataFile, JSON.stringify(data));
-            response.set('Content-Type', 'text/json').status(result.status).send(data);
+        let result = {status: 200};
+        if (req.upload_buffer) {
+            result = await saveBackgroundImage({
+                dir: backgroundDir,
+                buffer: req.upload_buffer
+            });
+            if (result.filepath) {
+                data.home_tab_data.background_image = result.filepath;
+            }
         }
-        else response.set('Content-Type', 'text/json').status(result.status).send(result);
+        else data.home_tab_data.background_image = '';
+        fs.writeFileSync(dataFile, JSON.stringify(data));
+        response.set('Content-Type', 'text/json').status(result.status).send(result.status == 200 ? data : result);
     }
     catch (error) {
         console.log(`set-background error > ${error.message}`);
