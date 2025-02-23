@@ -90,7 +90,6 @@ const readAPIKey = () => {
 }
 
 const app = express();
-app.set('view engine', 'ejs');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -142,14 +141,6 @@ app.use(authentication);
 app.use(express.static(path.join(__dirname, '/public')));
 app.use('/thumbnail',  express.static(thumbnailDir));
 app.use('/background',  express.static(backgroundDir));
-
-app.get('/script.js', (request, response) => {
-    const vars = {
-        appName: appName,
-        version: version
-    };
-    response.render(path.join(__dirname, '/views/script'), vars);
-});
 
 app.post('/create-thumbnail', async (request, response) => {
     const req = request.fields;
@@ -237,7 +228,7 @@ app.get('/get-data', async (request, response) => {
             });
         }
         else {
-            const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"version":"${version}","timestamp":${Date.now()}}}`;
+            const dataSchema = `{"home_tab_data":{"current_group":0,"groups":[{"name":"Home","bookmarks":[]}],"app_name","${appName}","version":"${version}","timestamp":${Date.now()}}}`;
             !fs.existsSync(dataRoot) && fs.mkdirSync(dataRoot);
             fs.writeFile(dataFile, dataSchema, error => {
                 if (error) {
