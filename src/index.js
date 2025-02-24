@@ -206,11 +206,8 @@ app.post('/delete-thumbnail', async (request, response) => {
 app.post('/set-data', async (request, response) => {
     const req = request.fields;
     try {
-        data = JSON.parse(req.home_tab_data);
-        data.home_tab_data.app_name = appName;
-        data.home_tab_data.version = version;
-        fs.writeFileSync(dataFile, JSON.stringify(data));
-        response.set('content-type', 'text/json').status(200).send(data);
+        fs.writeFileSync(dataFile, req.home_tab_data);
+        response.set('content-type', 'text/json').status(200).send(req.home_tab_data);
     }
     catch (error) {
         console.log(`set-data error > ${error.message}`);

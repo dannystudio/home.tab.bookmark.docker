@@ -134,7 +134,7 @@ const getFormValues = form => {
     return values;
 };
 
-const setDataToServer = async (saveToVar) => {
+const setDataToServer = async () => {
     if (isHomeTabBookmarkData(homeTabData)) {
         homeTabData.timestamp = Date.now();
         const formData = new FormData();
@@ -144,13 +144,6 @@ const setDataToServer = async (saveToVar) => {
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
         })
-        .then(resp => {
-            if (resp.status == 200) {
-                return resp.json();
-            }
-            else saveToVar && showMessagePopup('Unable to retrieve data, please try again later.');
-        })
-        .then(data => saveToVar && (homeTabData = data))
         .catch(error => {
             showMessagePopup('Unable to retrieve data, please try again later.');
         }); 
@@ -828,6 +821,8 @@ const importData = files => {
     const reader = new FileReader();
     reader.onload = async event => {
         try {
+            const appName = homeTabData.app_name;
+            const version = homeTabData.version;
             const fileContent = event.target.result;
             const importedData = dataType == 'json' ? JSON.parse(fileContent) : fileContent;
             const isNetscapeBookmark = dataType == 'html' && isNetscapeBookmarkData(importedData);
@@ -836,7 +831,8 @@ const importData = files => {
             if (isNetscapeBookmark || isSpeedDials || isHomeTabBookmark) {
                 homeTabData = isNetscapeBookmark ? convertBrowserData(importedData) :
                     (isSpeedDials ? convertSpeedDialsData(importedData) : importedData.home_tab_data);
-                setDataToServer(true);
+                homeTabData.app_name = appName;
+                homeTabData.version = version;
                 renderGroups();
                 goToGroup(homeTabData.current_group);
                 showMessagePopup('Data import successfully.', 'info');
