@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare": "rm -rf ./dist && mkdirp ./dist/public ./dist/modules ./dist/data",
+    "prepare": "rm -rf ./dist && mkdirp ./dist/public ./dist/public/icons ./dist/modules ./dist/data",
     "devtest": "nodemon ./src/index.js",
-    "build": "npm run --silent prepare && cp -R ./src/public/* ./dist/public && html-minifier --input-dir ./src/public --output-dir ./dist/public --collapse-whitespace --file-ext html && uglifycss ./src/public/style.css --output ./dist/public/style.css && uglifyjs ./src/public/script.js --compress --mangle toplevel --warn --output ./dist/public/script.js && uglifyjs ./src/modules/thumbnail-factory.js --compress --mangle --warn --output ./dist/modules/thumbnail-factory.js && uglifyjs ./src/index.js --compress --mangle --warn --output ./dist/index.js",
+    "extbuild": "rm -rf ./browser_extension && mkdirp ./browser_extension && cp -R ./src/public/* ./browser_extension && html-minifier --input-dir ./src/public/ --output-dir ./browser_extension --remove-comments --collapse-whitespace --file-ext html && uglifycss ./src/public/style.css --output ./browser_extension/style.css && uglifyjs ./src/public/loader.js --compress --mangle --output ./browser_extension/loader.js && uglifyjs ./src/public/script.js --compress --mangle toplevel --output ./browser_extension/script.js",
+    "build": "npm run --silent prepare && cp ./src/public/icons/* ./dist/public/icons && html-minifier --input-dir ./src/public/ --output-dir ./dist/public/ --remove-comments --collapse-whitespace --file-ext html && rm ./dist/public/ext-options.html ./dist/public/ext-popup.html && uglifycss ./src/public/style.css --output ./dist/public/style.css && uglifyjs ./src/public/loader.js --compress --mangle --output ./dist/public/loader.js && uglifyjs ./src/public/script.js --compress --mangle toplevel --output ./dist/public/script.js && uglifyjs ./src/modules/thumbnail-factory.js --compress --mangle --warn --output ./dist/modules/thumbnail-factory.js && uglifyjs ./src/index.js --compress --mangle --warn --output ./dist/index.js",
     "buildtest": "npm run --silent build && node ./dist/index.js",
     "dockerbuild": "rm -rf ./home-tab-bookmark.tar && npm run --silent build && docker build -t dannystudio/home-tab-bookmark .",
     "dockertest": "docker run -p 3000:3000 dannystudio/home-tab-bookmark",
-    "dockersave": "npm run dockerbuild && echo build completed, now save to tar... &&docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
+    "dockersave": "npm run dockerbuild && echo build completed, now save to tar... && docker save -o ./home-tab-bookmark.tar dannystudio/home-tab-bookmark"
   },
   "author": "",
   "license": "ISC",
@@ -24,6 +25,7 @@
     "sharp": "^0.33.5"
   },
   "devDependencies": {
+    "del-cli": "^6.0.0",
     "html-minifier": "^4.0.0",
     "nodemon": "^3.1.9",
     "uglify-js": "^3.19.3",

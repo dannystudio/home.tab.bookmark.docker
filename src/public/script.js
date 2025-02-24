@@ -139,7 +139,7 @@ const setDataToServer = async () => {
         homeTabData.timestamp = Date.now();
         const formData = new FormData();
         formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
-        return await fetch('/set-data/', {
+        return await fetch(`${baseUrl}/set-data/`, {
             method: 'POST',
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
@@ -152,7 +152,7 @@ const setDataToServer = async () => {
 };
 
 const getDataFromServer = event => {
-    fetch('/get-data/')    
+    fetch(`${baseUrl}/get-data/`)    
     .then(resp => resp.json())
     .then(data => {
         if (isHomeTabBookmarkData(data.home_tab_data)) {
@@ -165,6 +165,7 @@ const getDataFromServer = event => {
         else showMessagePopup('Data may have corrupted, please try import data from backup file.');
     })
     .catch(error => {
+        console.log(error.message);
         showMessagePopup('Unable to retrieve data, please try again later.');
     });
 };
@@ -298,7 +299,7 @@ const renderBookmarks = data => {
         bookmarkItem.addEventListener('dragend', moveBookmark);         
         bookmarkItem.addEventListener('contextmenu', () => editBookmark(bookmark, bookmarkIndex));
         const bookmarkThumb = create('div', '', 'bookmark-thumbnail');
-        const thumbnailSource = bookmark.hasOwnProperty('thumbnail') && bookmark.thumbnail.match(/^(http|https):\/\//i) == null ? `/thumbnail/${bookmark.thumbnail}` : bookmark.thumbnail;
+        const thumbnailSource = bookmark.hasOwnProperty('thumbnail') && bookmark.thumbnail.match(/^(http|https):\/\//i) == null ? `${baseUrl}/thumbnail/${bookmark.thumbnail}` : bookmark.thumbnail;
         setBackground(bookmarkThumb, thumbnailSource);
         const bookmarkLabel = create('div', bookmark.label, 'bookmark-label');
         bookmarkItem.append(bookmarkThumb, bookmarkLabel);
@@ -652,7 +653,7 @@ const submitBookmarkForm = () => {
             formData.append('thumbnail_url', thumbnailSourceUrl);
             formData.append('thumbnail_delete', deleteThumbnail);
             formData.append('upload_buffer', uploadBuffer);
-            fetch('/create-thumbnail/', {
+            fetch(`${baseUrl}/create-thumbnail/`, {
                 method: 'POST',
                 header: {'Content-Type': 'multipart/form-data'},
                 body: formData
@@ -692,7 +693,7 @@ const preceedDeleteItem = () => {
     else {
         const formData = new FormData();
         formData.append('thumbnail_delete', bookmarkThumbnail);
-        fetch('/delete-thumbnail/', {
+        fetch(`${baseUrl}/delete-thumbnail/`, {
             method: 'POST',
             header: {'Content-Type': 'multipart/form-data'},
             body: formData
@@ -855,7 +856,7 @@ const applyBackground = (type = 'apply') => {
     const formData = new FormData();
     formData.append('home_tab_data', `{"home_tab_data":${JSON.stringify(homeTabData)}}`);
     type == 'apply' && formData.append('upload_buffer', uploadBuffer);
-    fetch('/set-background/', {
+    fetch(`${baseUrl}/set-background/`, {
         method: 'POST',
         header: {'Content-Type': 'multipart/form-data'},
         body: formData
@@ -865,7 +866,7 @@ const applyBackground = (type = 'apply') => {
         if (data.hasOwnProperty('home_tab_data')) {
             homeTabData = data.home_tab_data;
             if (homeTabData.hasOwnProperty('background_image')) {
-                setBackground(document.body, homeTabData.background_image);
+                setBackground(document.body, `${baseUrl}/${homeTabData.background_image}`);
                 showMessagePopup(`Background image ${type == 'apply' ? 'applied' : 'removed'}.`, 'info');
                 html('#background_action_button', type == 'apply' ? 'Remove' : 'Apply');
                 qs('#background_action_button').disabled = false;
@@ -949,7 +950,7 @@ const setDropArea = (type) => { // import / thumbnail / background
         'upload-type': type
     });
     const dropArea = qs('.drop-area-container');
-    setBackground('.drop-area-container', type == 'background' ? homeTabData.background_image : '');
+    setBackground('.drop-area-container', type == 'background' ? `${baseUrl}/${homeTabData.background_image}` : '');
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
         dropArea.addEventListener(evt, event => {
             event.preventDefault();
@@ -979,7 +980,7 @@ const setDropArea = (type) => { // import / thumbnail / background
 };
 
 const getAPIKey = () => {
-    fetch('/get-apikey/')    
+    fetch(`${baseUrl}/get-apikey/`)    
     .then(resp => resp.json())
     .then(data => {
         apikey = data.apikey;
@@ -996,7 +997,7 @@ const setSettings = (applyToForm = true) => {
     autoDismissTimeframe = homeTabData.hasOwnProperty('auto_dismiss_timeframe') ? parseInt(homeTabData.auto_dismiss_timeframe) : 3;
     maxBookmarkPerRow = homeTabData.hasOwnProperty('max_bookmark_per_row') ? parseInt(homeTabData.max_bookmark_per_row) : 6;
     const appBackgroundImage = homeTabData.hasOwnProperty('background_image') ? homeTabData.background_image : '';
-    appBackgroundImage != '' && setBackground(document.body, appBackgroundImage);
+    appBackgroundImage != '' && setBackground(document.body, `${baseUrl}/${appBackgroundImage}`);
     const colorScheme = homeTabData.hasOwnProperty('color_scheme') ? homeTabData.color_scheme : 'light_dark';
     if (applyToForm) {
         qs('#remember_group_index').checked = rememberGroupIndex;
@@ -1231,4 +1232,5 @@ const svgSource = {
     delete: '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="64 0 208 256" overflow="visible"><path d="M128 21.333c-17.578 0-32 14.422-32 32H40a8 8 0 100 16h13.333v136c0 16.176 13.158 29.334 29.334 29.334h54.041a69.437 69.437 0 01-11.51-16H82.667c-7.35 0-13.334-5.984-13.334-13.334v-136h117.334v48c5.514 0 10.853.711 16 1.927V69.333H216a8 8 0 100-16h-56c0-17.578-14.422-32-32-32zm0 16c8.929 0 16 7.072 16 16h-32c0-8.928 7.071-16 16-16zm-18.792 58.552a8 8 0 00-7.875 8.115v80a8 8 0 1016 0v-80a8 8 0 00-8.125-8.115zm37.459.115c-4.422 0-8 3.579-8 8v32.708a69.437 69.437 0 0116-11.51V104c0-4.421-3.58-8-8-8zm40 32c-32.4 0-58.667 26.267-58.667 58.667 0 32.4 26.267 58.666 58.667 58.666 32.4 0 58.666-26.266 58.666-58.666S219.067 128 186.667 128zM160 154.667c1.364 0 2.728.52 3.77 1.562l22.897 22.896 22.895-22.896a5.328 5.328 0 017.542 0 5.328 5.328 0 010 7.542l-22.896 22.896 22.896 22.895a5.328 5.328 0 010 7.542 5.319 5.319 0 01-3.77 1.563 5.319 5.319 0 01-3.772-1.563l-22.895-22.896-22.896 22.896a5.319 5.319 0 01-3.771 1.563 5.319 5.319 0 01-3.77-1.563 5.328 5.328 0 010-7.542l22.895-22.895-22.896-22.896a5.328 5.328 0 010-7.542 5.315 5.315 0 013.77-1.562z" fill="#bb2d3b" stroke-miterlimit="10" font-family="none" font-weight="none" font-size="none" text-anchor="none"/></svg>'
 };
 
-document.addEventListener('DOMContentLoaded', getDataFromServer);
+// document.addEventListener('DOMContentLoaded', getDataFromServer);
+getDataFromServer(true);

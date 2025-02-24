@@ -187,7 +187,7 @@ const saveBackgroundImage = async (props) => {
         return await sharp(Buffer.from(base64Data, 'base64'))
         .toFile(destPath)
         .then(() => {
-            return {status: 200, filepath: `/background/${destName}`};
+            return {status: 200, filepath: `background/${destName}`};
         })
         .catch(error => {
             return {status: 500, message: 'Unable to apply background.'};
