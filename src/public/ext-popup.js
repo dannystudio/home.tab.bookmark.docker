@@ -1,10 +1,11 @@
 const groupContainer = document.getElementById('groupContainer');
+const browserObj = new browserAPI();
 
 const addToGroup = async event => {
-    const data = await getStorageData();
+    const data = await browserObj.getStorageData();
     if (data.hostName && data.apiKey) {
         const groupName = event.target.innerHTML;
-        const tabData = await browserObj.tabs.query({active: true, lastFocusedWindow: true});
+        const tabData = await browserObj.getTabData();
         const url = tabData[0].url || '';
         const title = tabData[0].title || '';
         const junction = data.hostName.slice(-1) == '/' ? '' : '/';
@@ -24,7 +25,7 @@ const addToGroup = async event => {
 };
 
 const getGroups = async () => {
-    const data = await getStorageData();
+    const data = await browserObj.getStorageData();
     if (data.hostName && data.apiKey) {
         const junction = data.hostName.slice(-1) == '/' ? '' : '/';
         fetch(`${data.hostName}${junction}api/group?apikey=${data.apiKey}`)

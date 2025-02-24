@@ -1,6 +1,7 @@
 const host = document.getElementById('host');
 const apikey = document.getElementById('apikey');
 const saveBtn = document.getElementById('saveBtn');
+const browserObj = new browserAPI();
 
 saveBtn.addEventListener('click', () => {
     const hostValue = host.value.trim();
@@ -10,8 +11,10 @@ saveBtn.addEventListener('click', () => {
         document.getElementById('apikey_error').innerHTML =  apikeyValue == '' ? 'Required' : '';
     }
     else {
-        browserObj.storage.local.set({'home-tab-bookmark-host': host.value});
-        browserObj.storage.local.set({'home-tab-bookmark-api-key': apikey.value});
+        browserObj.setStorageData({
+            host: host.value.trim(),
+            apikey: apikey.value.trim()
+        });
         const output = document.getElementById('output');
         output.innerHTML = 'Saved';
         setTimeout(() => {
@@ -21,7 +24,7 @@ saveBtn.addEventListener('click', () => {
 });
 
 const setFormData = async () => {
-    const data = await getStorageData(true);
+    const data = await browserObj.getStorageData(true);
     host.value = data.hostName;
     apikey.value = data.apiKey;
 };
