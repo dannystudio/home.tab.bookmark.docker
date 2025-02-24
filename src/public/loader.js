@@ -1,6 +1,6 @@
 const isFireFox = navigator.userAgent.match(/firefox/i) != null;
 const defaultTestUrl = 'http://localhost:3000';
-let browserObj, baseUrl = defaultTestUrl;
+let browserObj, baseUrl = '';
 
 const getStorageData = async useDefault => {
     const hostData = await browserObj.storage.local.get('home-tab-bookmark-host');
@@ -20,7 +20,7 @@ const loadMainScript = () => {
 };
 
 const initApp = async () => {
-    if (!document.location) {
+    if (document.location.href.match(/^(http|https)/) == null) {
         browserObj = isFireFox ? browser : chrome;
         await browserObj.storage.local.get('home-tab-bookmark-host', data => {
             baseUrl = data['home-tab-bookmark-host'] || defaultTestUrl;
