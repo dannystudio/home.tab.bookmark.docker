@@ -143,6 +143,27 @@ input::placeholder {
     z-index: 9;
 }
 
+.copy-url-container {
+    display: block;
+    width: 0px;
+    height: 0px;
+    overflow: visible;
+    div {
+        display: none;
+        position: relative;
+        top: -43px;
+        left: 378px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+    }
+}
+
+.copy-button-theme {
+    fill: var(--secondary-bg-color);
+    stroke: var(--main-border-color);
+}
+
 .popup-mask, .message-mask {
     position: fixed;
     display: none;
