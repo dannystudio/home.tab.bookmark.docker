@@ -1,6 +1,6 @@
 # Home Tab Bookmark
 
-Self host SpeedDial style bookmark for browser tab.
+Self-Hosted SpeedDial style bookmark for browser home tab.
 
 ![screenshot](https://github.com/user-attachments/assets/d0d78c2d-e515-400e-a815-a646bf230b3e)
 
