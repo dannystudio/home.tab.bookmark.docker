@@ -6,11 +6,11 @@ Self-Hosted SpeedDial style bookmark for browser home tab.
 
 ## Requirements
 
-#### Environment
+#### Environment (docker)
 * Linux, Windows or Mac OS
 * Node.js 18+
 
-#### Browser
+#### Browser (browser extension)
 * Microsoft Edge
 * Chrome
 * Firefox
@@ -72,7 +72,7 @@ Go to API Key and click Copy to copy the API Key.
 * Enter Home Tab Bookmark Host (`http://localhost:3000` for example) and API Key you have copied form Home Tab Bookmark Web App, and then click Save.
 * Now you should be able to click Home Tab Bookmark extension icon from menu bar to add bookmark.
 
-## ENV Variables
+## Docker ENV Variables
 
 #### SCREENSHOT_API
 Specify the screenshot api gives option to use different screenshot api to get the screenshot for bookmark thumbnail. The screenshot api should be full api url without bookmark's url and it should return a png or jpeg image.
@@ -95,7 +95,7 @@ The default username for basic authentication is `admin`, use this variable to s
 #### PASSWORD
 The default password for basic authentication is `admin`, use this variable to set your password for basic authentication.
 
-## Volume Setting
+## Docker Volume Setting
 
 #### /app/data
 This is where the data and thumbnail are stored, map this volume with read/write permission if needed.
